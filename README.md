@@ -5,6 +5,7 @@ Monorepo aplikasi Express dan React yang dikelola dengan Bun.
 ## Prasyarat
 
 - Bun 1.3 atau lebih baru
+- MySQL 8 atau lebih baru
 
 ## Instalasi
 
@@ -15,6 +16,17 @@ bun install
 cd ../frontend
 bun install
 ```
+
+## Database
+
+Buat database dan tabel:
+
+```sh
+mysql -u root -p < backend/src/config/schema.sql
+```
+
+Skrip ini aman dijalankan ulang karena memakai `IF NOT EXISTS`.
+Sesuaikan kredensial database pada `backend/.env`.
 
 ## Menjalankan aplikasi
 
