@@ -26,7 +26,7 @@ mysql -u root -p < backend/src/config/schema.sql
 ```
 
 Skrip ini aman dijalankan ulang karena memakai `IF NOT EXISTS`.
-Sesuaikan kredensial database pada `backend/.env`.
+Sesuaikan kredensial database pada `backend/.env`. Backend juga memerlukan `JWT_SECRET` minimal 32 byte; buat nilai acak dengan `openssl rand -hex 32`.
 
 ## Menjalankan aplikasi
 
