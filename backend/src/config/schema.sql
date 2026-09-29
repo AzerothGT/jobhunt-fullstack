@@ -1,5 +1,5 @@
 -- Schema database Jobhunt.
--- Import: mysql -u root -p < backend/database/schema.sql
+-- Import: mysql -u root -p < backend/src/config/schema.sql
 
 CREATE DATABASE IF NOT EXISTS jobhunt_db
   CHARACTER SET utf8mb4

@@ -22,7 +22,7 @@ bun install
 Buat database dan tabel:
 
 ```sh
-mysql -u root -p < backend/database/schema.sql
+mysql -u root -p < backend/src/config/schema.sql
 ```
 
 Skrip ini aman dijalankan ulang karena memakai `IF NOT EXISTS`.
