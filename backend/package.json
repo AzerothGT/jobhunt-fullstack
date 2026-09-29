@@ -1,0 +1,13 @@
+{
+  "name": "backend",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch src/server.js",
+    "start": "bun src/server.js",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
