@@ -13,6 +13,19 @@ afterAll(async () => {
 const recruiter = () => registerUser(server.url, { role: "recruiter" });
 const seeker = () => registerUser(server.url, { role: "job_seeker" });
 
+test("spec: backend .env exposes the required configuration keys", async () => {
+  const example = await Bun.file(new URL("../.env.example", import.meta.url)).text();
+  const keys = new Set(
+    example.split("\n").map((line) => line.trim()).filter(Boolean).map((line) => line.split("=")[0]),
+  );
+  for (const key of [
+    "PORT", "DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD",
+    "DB_NAME", "JWT_SECRET", "JWT_EXPIRES_IN", "FRONTEND_URL",
+  ]) {
+    expect(keys.has(key)).toBe(true);
+  }
+});
+
 function send(method, path, { token, body } = {}) {
   return fetch(`${server.url}${path}`, {
     method,
@@ -25,8 +38,7 @@ function send(method, path, { token, body } = {}) {
   });
 }
 
-test("spec schema has the required tables, columns, and constraints", async () => {
-  const columns = await sql`
+test("spec schema has the required tables, columns, and constraints", async () => {  const columns = await sql`
     SELECT TABLE_NAME AS table_name, COLUMN_NAME AS column_name
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_SCHEMA = DATABASE()
