@@ -184,6 +184,44 @@ const openApiSpec = {
         },
       },
     },
+    "/api/jobs/{id}/apply": {
+      post: {
+        tags: ["Applications"],
+        summary: "Apply to a job",
+        security: bearer,
+        parameters: [jobId],
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": { schema: ref("ApplicationCreateRequest") },
+            "multipart/form-data": {
+              schema: {
+                type: "object",
+                required: ["full_name", "phone", "email", "cover_letter"],
+                properties: {
+                  full_name: { type: "string" },
+                  phone: { type: "string" },
+                  email: { type: "string", format: "email" },
+                  website: { type: "string" },
+                  portfolio_url: { type: "string" },
+                  cover_letter: { type: "string" },
+                  resume: { type: "string", format: "binary" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": json("Application submitted", ref("ApplicationResponse")),
+          "400": error("Invalid job ID or cover letter"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only job seekers can apply to jobs"),
+          "404": error("Job not found"),
+          "409": error("Job is closed or the applicant has already applied"),
+          "500": serverError(),
+        },
+      },
+    },
     "/api/applications/mine": {
       get: {
         tags: ["Applications"],
@@ -226,6 +264,31 @@ const openApiSpec = {
     },
     "/api/applications/{id}/status": {
       patch: {
+        tags: ["Applications"],
+        summary: "Update an application status",
+        security: bearer,
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            description: "Positive application ID",
+            schema: { type: "integer", minimum: 1 },
+          },
+        ],
+        requestBody: requestBody("ApplicationStatusRequest"),
+        responses: {
+          "200": json("Application status updated", ref("ApplicationResponse")),
+          "400": error("Invalid application ID or status"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only the owning recruiter can manage this application"),
+          "404": error("Application not found"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/applications/{id}": {
+      put: {
         tags: ["Applications"],
         summary: "Update an application status",
         security: bearer,

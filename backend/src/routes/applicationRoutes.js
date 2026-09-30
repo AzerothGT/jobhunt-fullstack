@@ -7,5 +7,7 @@ const router = Router();
 router.get("/mine", requireAuth, requireRole("job_seeker"), listMyApplications);
 router.get("/:id/resume", requireAuth, downloadResume);
 router.patch("/:id/status", requireAuth, requireRole("recruiter"), updateApplicationStatus);
+// Spec alias: PUT /api/applications/:id
+router.put("/:id", requireAuth, requireRole("recruiter"), updateApplicationStatus);
 
 export default router;
