@@ -10,6 +10,8 @@ Monorepo aplikasi Express dan React yang dikelola dengan Bun.
 ## Instalasi
 
 ```sh
+bun install
+
 cd backend
 bun install
 
@@ -30,20 +32,24 @@ Sesuaikan kredensial database pada `backend/.env`. Backend juga memerlukan `JWT_
 
 ## Menjalankan aplikasi
 
-Jalankan di terminal terpisah.
+Jalankan backend dan frontend sekaligus dari root:
+
+```sh
+bun run dev
+```
+
+Atau jalankan terpisah di terminal masing-masing:
 
 Backend:
 
 ```sh
-cd backend
-bun run dev
+bun run dev:backend
 ```
 
 Frontend:
 
 ```sh
-cd frontend
-bun run dev
+bun run dev:frontend
 ```
 
 Endpoint pemeriksaan backend: `http://localhost:3000/api/health`.
