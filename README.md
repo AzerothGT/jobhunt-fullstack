@@ -57,4 +57,4 @@ Frontend:
 bun run dev:frontend
 ```
 
-Endpoint pemeriksaan backend: `http://localhost:3000/api/health`.
+Endpoint pemeriksaan backend: `http://localhost:5000/api/health` (atau nilai `PORT` di `backend/.env`). Proxy dev Vite mengikuti variabel yang sama.
