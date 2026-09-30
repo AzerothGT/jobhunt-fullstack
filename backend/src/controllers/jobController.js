@@ -3,6 +3,7 @@ import { isText, parseId } from "../middleware/validation.js";
 import * as jobs from "../models/jobModel.js";
 
 const TYPES = new Set(["full-time", "part-time", "contract", "internship"]);
+const SORTS = new Set(["recent", "applicants"]);
 const TYPE_MESSAGE = "type must be full-time, part-time, contract, or internship";
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
@@ -70,13 +71,17 @@ async function loadOwnJob(request) {
 
 export async function listJobs(request, response) {
   const { page, limit } = parsePaging(request.query);
-  const { keyword, type, location } = request.query;
+  const { keyword, type, location, sort = "recent" } = request.query;
 
   if (type !== undefined && !TYPES.has(type)) {
     throw new HttpError(400, TYPE_MESSAGE);
   }
 
-  const { data, total } = await jobs.findActiveJobs({ page, limit, keyword, type, location });
+  if (!SORTS.has(sort)) {
+    throw new HttpError(400, "sort must be recent or applicants");
+  }
+
+  const { data, total } = await jobs.findActiveJobs({ page, limit, keyword, type, location, sort });
 
   response.status(200).json({
     data,

@@ -13,8 +13,8 @@ const jobId = {
   description: "Positive job ID",
   schema: { type: "integer", minimum: 1 },
 };
-const requestBody = (schemaName) => ({
-  required: true,
+const requestBody = (schemaName, required = true) => ({
+  required,
   content: { "application/json": { schema: ref(schemaName) } },
 });
 
@@ -23,13 +23,15 @@ const openApiSpec = {
   info: {
     title: "Jobhunt API",
     version: "1.0.0",
-    description: "Health, authentication, and job listing endpoints.",
+    description: "Health, authentication, job, application, and recruiter endpoints.",
   },
   servers: [{ url: "/", description: "Current backend host" }],
   tags: [
     { name: "Health" },
     { name: "Authentication" },
     { name: "Jobs" },
+    { name: "Applications" },
+    { name: "Recruiter" },
   ],
   paths: {
     "/api/health": {
@@ -114,10 +116,15 @@ const openApiSpec = {
             },
           },
           { name: "location", in: "query", schema: { type: "string" } },
+          {
+            name: "sort",
+            in: "query",
+            schema: { type: "string", enum: ["recent", "applicants"], default: "recent" },
+          },
         ],
         responses: {
           "200": json("Paginated active jobs", ref("JobListResponse")),
-          "400": error("Invalid pagination or job type"),
+          "400": error("Invalid pagination, job type, or sort"),
           "500": serverError(),
         },
       },
@@ -135,6 +142,91 @@ const openApiSpec = {
           "400": error("Invalid job fields"),
           "401": error("Authentication required or token invalid"),
           "403": error("Only recruiters can create jobs"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/jobs/{id}/applications": {
+      post: {
+        tags: ["Applications"],
+        summary: "Apply to a job",
+        security: bearer,
+        parameters: [jobId],
+        requestBody: requestBody("ApplicationCreateRequest", false),
+        responses: {
+          "201": json("Application submitted", ref("ApplicationResponse")),
+          "400": error("Invalid job ID or cover letter"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only job seekers can apply to jobs"),
+          "404": error("Job not found"),
+          "409": error("Job is closed or the applicant has already applied"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/applications/mine": {
+      get: {
+        tags: ["Applications"],
+        summary: "List the authenticated job seeker's applications",
+        security: bearer,
+        responses: {
+          "200": json("Applicant's applications", ref("ApplicationListResponse")),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only job seekers can list their applications"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/applications/{id}/status": {
+      patch: {
+        tags: ["Applications"],
+        summary: "Update an application status",
+        security: bearer,
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            description: "Positive application ID",
+            schema: { type: "integer", minimum: 1 },
+          },
+        ],
+        requestBody: requestBody("ApplicationStatusRequest"),
+        responses: {
+          "200": json("Application status updated", ref("ApplicationResponse")),
+          "400": error("Invalid application ID or status"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only the owning recruiter can manage this application"),
+          "404": error("Application not found"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/jobs/{id}/applicants": {
+      get: {
+        tags: ["Applications"],
+        summary: "List applicants for a recruiter's job",
+        security: bearer,
+        parameters: [jobId],
+        responses: {
+          "200": json("Applicants for the job", ref("JobApplicantsResponse")),
+          "400": error("Invalid job ID"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only the owning recruiter can view these applicants"),
+          "404": error("Job not found"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/recruiter/dashboard": {
+      get: {
+        tags: ["Recruiter"],
+        summary: "Get the recruiter dashboard summary",
+        security: bearer,
+        responses: {
+          "200": json("Recruiter dashboard totals", ref("RecruiterDashboardResponse")),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only recruiters can view the dashboard"),
           "500": serverError(),
         },
       },
@@ -281,6 +373,101 @@ const openApiSpec = {
           created_at: { type: "string", format: "date-time" },
         },
       },
+      Application: {
+        type: "object",
+        required: ["id", "job_id", "applicant_id", "cover_letter", "status", "applied_at"],
+        properties: {
+          id: { type: "integer" },
+          job_id: { type: "integer" },
+          applicant_id: { type: "integer" },
+          cover_letter: { type: "string", nullable: true },
+          status: { type: "string", enum: ["pending", "reviewed", "rejected"] },
+          applied_at: { type: "string", format: "date-time" },
+        },
+      },
+      ApplicationCreateRequest: {
+        type: "object",
+        properties: { cover_letter: { type: "string", nullable: true } },
+      },
+      ApplicationStatusRequest: {
+        type: "object",
+        required: ["status"],
+        properties: { status: { type: "string", enum: ["pending", "reviewed", "rejected"] } },
+      },
+      ApplicationResponse: {
+        type: "object",
+        required: ["application"],
+        properties: { application: ref("Application") },
+      },
+      ApplicationJob: {
+        type: "object",
+        required: ["id", "title", "company", "location", "type", "is_active"],
+        properties: {
+          id: { type: "integer" },
+          title: { type: "string" },
+          company: { type: "string" },
+          location: { type: "string", nullable: true },
+          type: { type: "string", enum: ["full-time", "part-time", "contract", "internship"] },
+          is_active: { type: "boolean" },
+        },
+      },
+      ApplicationHistoryItem: {
+        allOf: [
+          ref("Application"),
+          {
+            type: "object",
+            required: ["job"],
+            properties: { job: ref("ApplicationJob") },
+          },
+        ],
+      },
+      ApplicationListResponse: {
+        type: "object",
+        required: ["data"],
+        properties: { data: { type: "array", items: ref("ApplicationHistoryItem") } },
+      },
+      Applicant: {
+        type: "object",
+        required: ["id", "name", "email"],
+        properties: {
+          id: { type: "integer" },
+          name: { type: "string" },
+          email: { type: "string", format: "email" },
+        },
+      },
+      JobApplicant: {
+        allOf: [
+          ref("Application"),
+          {
+            type: "object",
+            required: ["applicant"],
+            properties: { applicant: ref("Applicant") },
+          },
+        ],
+      },
+      JobApplicantsResponse: {
+        type: "object",
+        required: ["data"],
+        properties: { data: { type: "array", items: ref("JobApplicant") } },
+      },
+      RecruiterDashboardResponse: {
+        type: "object",
+        required: ["total_jobs", "total_applicants"],
+        properties: {
+          total_jobs: { type: "integer", minimum: 0 },
+          total_applicants: { type: "integer", minimum: 0 },
+        },
+      },
+      CatalogJob: {
+        allOf: [
+          ref("Job"),
+          {
+            type: "object",
+            required: ["applicant_count"],
+            properties: { applicant_count: { type: "integer", minimum: 0 } },
+          },
+        ],
+      },
       JobCreateRequest: {
         type: "object",
         required: ["title", "company", "type", "description"],
@@ -335,7 +522,7 @@ const openApiSpec = {
         type: "object",
         required: ["data", "page", "limit", "total", "total_pages"],
         properties: {
-          data: { type: "array", items: ref("Job") },
+          data: { type: "array", items: ref("CatalogJob") },
           page: { type: "integer" },
           limit: { type: "integer" },
           total: { type: "integer" },
