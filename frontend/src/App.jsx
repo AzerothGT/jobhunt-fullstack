@@ -3,6 +3,7 @@ import SiteLayout from './components/SiteLayout.jsx'
 import { LoadingState } from './components/PageState.jsx'
 import { useAuth } from './hooks/useAuth.js'
 import ApplicationsPage from './pages/ApplicationsPage.jsx'
+import ApplyWizardPage from './pages/ApplyWizardPage.jsx'
 import AuthPage from './pages/AuthPage.jsx'
 import HomePage from './pages/HomePage.jsx'
 import JobDetailPage from './pages/JobDetailPage.jsx'
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="register" element={<AuthPage mode="register" />} />
         <Route path="profile" element={<Protected><ProfilePage /></Protected>} />
         <Route path="applications" element={<Protected roles={['job_seeker']}><ApplicationsPage /></Protected>} />
+        <Route path="jobs/:id/apply" element={<Protected roles={['job_seeker']}><ApplyWizardPage /></Protected>} />
         <Route path="dashboard" element={<Protected roles={['recruiter']}><DashboardPage /></Protected>} />
         <Route path="jobs/create" element={<Protected roles={['recruiter']}><JobFormPage mode="create" /></Protected>} />
         <Route path="jobs/:id/edit" element={<Protected roles={['recruiter']}><JobFormPage mode="edit" /></Protected>} />

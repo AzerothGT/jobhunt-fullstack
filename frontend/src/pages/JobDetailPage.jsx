@@ -110,6 +110,7 @@ export default function JobDetailPage() {
                   <label htmlFor="cover-letter">Pesan pengantar <span>(opsional)</span></label>
                   <textarea id="cover-letter" rows="5" value={coverLetter} onChange={(event) => setCoverLetter(event.target.value)} placeholder="Ceritakan singkat mengapa pekerjaan ini menarik bagi Anda." />
                   <button className="button button-full" type="submit" disabled={applying}>{applying ? 'Mengirim…' : user ? 'Kirim lamaran' : 'Masuk untuk melamar'} <span aria-hidden="true">↗</span></button>
+                  <Link className="text-link" to={`/jobs/${id}/apply`}>atau lamar dengan formulir lengkap <span aria-hidden="true">→</span></Link>
                 </>
               )}
             </form>

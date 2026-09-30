@@ -27,8 +27,9 @@ export async function api(path, options = {}) {
   const token = isAuthEntryRequest ? null : globalThis.localStorage?.getItem(AUTH_TOKEN_KEY)
   const generation = getAuthSessionGeneration()
   let body = options.body
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
 
-  if (body !== undefined && body !== null && typeof body === 'object') {
+  if (!isFormData && body !== undefined && body !== null && typeof body === 'object') {
     body = JSON.stringify(body)
     headers.set('Content-Type', 'application/json')
   }
