@@ -58,7 +58,7 @@ export default function ApplicantsPage() {
 
   return (
     <div className="page-shell applicants-page">
-      <Link className="back-link" to="/dashboard">← Ruang rekrutmen</Link>
+      <Link className="back-link" to="/dashboard">← Dasbor recruiter</Link>
       <header className="page-heading"><span className="eyebrow">KANDIDAT · {applications.length} LAMARAN</span><h1>{job.title}</h1><p>{job.company} · {job.location}</p></header>
       {applications.length === 0 ? <EmptyState title="Belum ada pelamar">Lamaran untuk posisi ini akan muncul di sini.</EmptyState> : (
         <div className="applicant-list applicants-table-scroll">
