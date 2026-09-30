@@ -38,7 +38,54 @@ function send(method, path, { token, body } = {}) {
   });
 }
 
-test("spec schema has the required tables, columns, and constraints", async () => {  const columns = await sql`
+test("spec schema has the required tables, columns, and constraints", async () => {
+  if (process.env.TURSO_DATABASE_URL) {
+    await expectTursoSchema();
+    return;
+  }
+  await expectMysqlSchema();
+});
+
+async function expectTursoSchema() {
+  const tables = await sql`SELECT name FROM sqlite_master WHERE type = 'table'`;
+  const names = new Set(tables.map((row) => row.name));
+  for (const table of ["users", "jobs", "applications"]) {
+    expect(names.has(table)).toBe(true);
+  }
+
+  const columnsByTable = {};
+  for (const table of ["users", "jobs", "applications"]) {
+    const info = await sql.unsafe(`PRAGMA table_info(${table})`);
+    columnsByTable[table] = new Set(info.map((row) => row.name));
+  }
+  for (const column of ["id", "name", "email", "password", "role", "created_at"]) {
+    expect(columnsByTable.users.has(column)).toBe(true);
+  }
+  for (const column of [
+    "id", "recruiter_id", "title", "company", "location", "type",
+    "description", "requirements", "salary_min", "salary_max", "is_active", "created_at",
+  ]) {
+    expect(columnsByTable.jobs.has(column)).toBe(true);
+  }
+  for (const column of ["id", "job_id", "applicant_id", "cover_letter", "status", "applied_at"]) {
+    expect(columnsByTable.applications.has(column)).toBe(true);
+  }
+
+  const indexes = await sql.unsafe("PRAGMA index_list(applications)");
+  const uniquePair = [];
+  for (const index of indexes.filter((row) => row.unique)) {
+    const parts = await sql.unsafe(`PRAGMA index_info(${index.name})`);
+    uniquePair.push(parts.map((row) => row.name).sort().join(","));
+  }
+  expect(uniquePair).toContain("applicant_id,job_id");
+
+  const foreignKeys = await sql.unsafe("PRAGMA foreign_key_list(applications)");
+  const cascades = foreignKeys.filter((row) => String(row.on_delete).toUpperCase() === "CASCADE");
+  expect(cascades.map((row) => row.table).sort()).toEqual(["jobs", "users"]);
+}
+
+async function expectMysqlSchema() {
+  const columns = await sql`
     SELECT TABLE_NAME AS table_name, COLUMN_NAME AS column_name
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_SCHEMA = DATABASE()
@@ -69,7 +116,7 @@ test("spec schema has the required tables, columns, and constraints", async () =
       AND COLUMN_NAME IN ('job_id', 'applicant_id')
   `;
   expect(Number(unique[0].total) >= 2).toBe(true);
-});
+}
 
 test("spec: POST /api/jobs/:id/apply lamaran pekerjaan", async () => {
   const owner = await recruiter();

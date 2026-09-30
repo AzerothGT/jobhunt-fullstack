@@ -1,12 +1,12 @@
 import bcrypt from "bcryptjs";
 import { signToken } from "../middleware/auth.js";
 import { HttpError } from "../middleware/errorHandler.js";
+import { isDuplicateEntry } from "../middleware/validation.js";
 import { createUser, findUserByEmail } from "../models/userModel.js";
 
 const ROLES = new Set(["job_seeker", "recruiter"]);
 const MIN_PASSWORD_LENGTH = 8;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const DUPLICATE_ENTRY = 1062;
 
 const isText = (value) => typeof value === "string" && value.trim().length > 0;
 
@@ -38,7 +38,7 @@ export async function register(request, response) {
   try {
     user = await createUser({ name: name.trim(), email: email.trim(), password, role });
   } catch (error) {
-    if (error.errno === DUPLICATE_ENTRY) {
+    if (isDuplicateEntry(error)) {
       throw new HttpError(409, "Email is already registered");
     }
     throw error;
