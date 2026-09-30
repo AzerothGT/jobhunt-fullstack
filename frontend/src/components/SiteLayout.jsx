@@ -13,14 +13,14 @@ export default function SiteLayout() {
   return (
     <>
       <header className="site-header">
-        <Link className="wordmark" to="/" aria-label="Ruang Kerja, beranda">
-          <span className="wordmark-stamp" aria-hidden="true">RK</span>
-          <span>ruang<span className="wordmark-slash">/</span>kerja</span>
+        <Link className="wordmark" to="/" aria-label="JobHunt, beranda">
+          <span className="wordmark-stamp" aria-hidden="true">JH</span>
+          <span>job<span className="wordmark-slash">/</span>hunt</span>
         </Link>
         <nav className="primary-nav" aria-label="Navigasi utama">
           <NavLink to="/jobs">Lowongan</NavLink>
           {user?.role === 'job_seeker' && <NavLink to="/applications">Lamaran saya</NavLink>}
-          {user?.role === 'recruiter' && <NavLink to="/dashboard">Ruang rekrutmen</NavLink>}
+          {user?.role === 'recruiter' && <NavLink to="/dashboard">Dasbor recruiter</NavLink>}
         </nav>
         <div className="header-account">
           {user ? (
@@ -38,9 +38,9 @@ export default function SiteLayout() {
       </header>
       <main className="site-main"><Outlet /></main>
       <footer className="site-footer">
-        <Link className="footer-wordmark" to="/">ruang/kerja</Link>
-        <p>Temukan pekerjaan yang memberi ruang untuk bertumbuh.</p>
-        <span className="eyebrow">JURNAL PEKERJAAN · EST. 2025</span>
+        <Link className="footer-wordmark" to="/">job/hunt</Link>
+        <p>Job Seeker menemukan kerja, Recruiter menemukan kandidat.</p>
+        <span className="eyebrow">JOB BOARD · EST. 2025</span>
       </footer>
     </>
   )

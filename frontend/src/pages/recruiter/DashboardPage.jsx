@@ -38,7 +38,7 @@ export default function DashboardPage() {
   return (
     <div className="page-shell dashboard-page">
       <header className="page-heading dashboard-heading">
-        <div><span className="eyebrow">RUANG REKRUTMEN</span><h1>Kerja yang <em>tumbuh.</em></h1><p>Kelola kesempatan dan temukan orang yang tepat.</p></div>
+        <div><span className="eyebrow">DASBOR RECRUITER</span><h1>Kerja yang <em>tumbuh.</em></h1><p>Kelola kesempatan dan temukan orang yang tepat.</p></div>
         <Link className="button" to="/jobs/create">Pasang lowongan <span aria-hidden="true">↗</span></Link>
       </header>
       {loading ? <LoadingState label="Memuat ringkasan rekrutmen…" /> : null}

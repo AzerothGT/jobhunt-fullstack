@@ -24,7 +24,7 @@ export default function HomePage() {
           <div className="aside-note">
             <span className="eyebrow">CATATAN REDAKSI · 01</span>
             <p>Karier bukan garis lurus. Temukan langkah berikutnya, dengan cara Anda sendiri.</p>
-            <span className="aside-signature">— Ruang Kerja</span>
+            <span className="aside-signature">— JobHunt</span>
           </div>
           <span className="hero-aside-index">VOL. 01 / 2025</span>
         </div>
