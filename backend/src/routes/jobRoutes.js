@@ -26,6 +26,14 @@ router.post(
   upload.single("resume"),
   applyToJob,
 );
+// Spec alias: POST /api/jobs/:id/apply
+router.post(
+  "/:id/apply",
+  requireAuth,
+  requireRole("job_seeker"),
+  upload.single("resume"),
+  applyToJob,
+);
 router.get("/:id/applicants", requireAuth, requireRole("recruiter"), listJobApplicants);
 router.get("/:id", getJob);
 router.post("/", requireAuth, requireRole("recruiter"), createJob);
