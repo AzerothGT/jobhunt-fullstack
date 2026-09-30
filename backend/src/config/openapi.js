@@ -152,7 +152,65 @@ const openApiSpec = {
         summary: "Apply to a job",
         security: bearer,
         parameters: [jobId],
-        requestBody: requestBody("ApplicationCreateRequest", false),
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": { schema: ref("ApplicationCreateRequest") },
+            "multipart/form-data": {
+              schema: {
+                type: "object",
+                required: ["full_name", "phone", "email", "cover_letter"],
+                properties: {
+                  full_name: { type: "string" },
+                  phone: { type: "string" },
+                  email: { type: "string", format: "email" },
+                  website: { type: "string" },
+                  portfolio_url: { type: "string" },
+                  cover_letter: { type: "string" },
+                  resume: { type: "string", format: "binary" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": json("Application submitted", ref("ApplicationResponse")),
+          "400": error("Invalid job ID or cover letter"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only job seekers can apply to jobs"),
+          "404": error("Job not found"),
+          "409": error("Job is closed or the applicant has already applied"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/jobs/{id}/apply": {
+      post: {
+        tags: ["Applications"],
+        summary: "Apply to a job",
+        security: bearer,
+        parameters: [jobId],
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": { schema: ref("ApplicationCreateRequest") },
+            "multipart/form-data": {
+              schema: {
+                type: "object",
+                required: ["full_name", "phone", "email", "cover_letter"],
+                properties: {
+                  full_name: { type: "string" },
+                  phone: { type: "string" },
+                  email: { type: "string", format: "email" },
+                  website: { type: "string" },
+                  portfolio_url: { type: "string" },
+                  cover_letter: { type: "string" },
+                  resume: { type: "string", format: "binary" },
+                },
+              },
+            },
+          },
+        },
         responses: {
           "201": json("Application submitted", ref("ApplicationResponse")),
           "400": error("Invalid job ID or cover letter"),
@@ -177,8 +235,60 @@ const openApiSpec = {
         },
       },
     },
+    "/api/applications/{id}/resume": {
+      get: {
+        tags: ["Applications"],
+        summary: "Download an applicant resume file",
+        security: bearer,
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            description: "Positive application ID",
+            schema: { type: "integer", minimum: 1 },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Resume file bytes",
+            content: { "application/octet-stream": { schema: { type: "string", format: "binary" } } },
+          },
+          "400": error("Invalid application ID"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only the owning recruiter or the applicant can download the resume"),
+          "404": error("Application or resume not found"),
+          "500": serverError(),
+        },
+      },
+    },
     "/api/applications/{id}/status": {
       patch: {
+        tags: ["Applications"],
+        summary: "Update an application status",
+        security: bearer,
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            description: "Positive application ID",
+            schema: { type: "integer", minimum: 1 },
+          },
+        ],
+        requestBody: requestBody("ApplicationStatusRequest"),
+        responses: {
+          "200": json("Application status updated", ref("ApplicationResponse")),
+          "400": error("Invalid application ID or status"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only the owning recruiter can manage this application"),
+          "404": error("Application not found"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/applications/{id}": {
+      put: {
         tags: ["Applications"],
         summary: "Update an application status",
         security: bearer,
@@ -381,13 +491,30 @@ const openApiSpec = {
           job_id: { type: "integer" },
           applicant_id: { type: "integer" },
           cover_letter: { type: "string", nullable: true },
+          full_name: { type: "string", nullable: true },
+          phone: { type: "string", nullable: true },
+          email: { type: "string", format: "email", nullable: true },
+          website: { type: "string", nullable: true },
+          portfolio_url: { type: "string", nullable: true },
+          resume_name: { type: "string", nullable: true },
+          resume_size: { type: "integer", minimum: 0, maximum: 12 * 1024 * 1024, nullable: true },
+          resume_url: { type: "string", nullable: true },
           status: { type: "string", enum: ["pending", "reviewed", "rejected"] },
           applied_at: { type: "string", format: "date-time" },
         },
       },
       ApplicationCreateRequest: {
         type: "object",
-        properties: { cover_letter: { type: "string", nullable: true } },
+        properties: {
+          cover_letter: { type: "string", nullable: true },
+          full_name: { type: "string", nullable: true },
+          phone: { type: "string", nullable: true },
+          email: { type: "string", format: "email", nullable: true },
+          website: { type: "string", nullable: true },
+          portfolio_url: { type: "string", nullable: true },
+          resume_name: { type: "string", nullable: true },
+          resume_size: { type: "integer", minimum: 0, maximum: 12 * 1024 * 1024, nullable: true },
+        },
       },
       ApplicationStatusRequest: {
         type: "object",

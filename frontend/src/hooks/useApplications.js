@@ -31,8 +31,14 @@ export function useApplications(mode = null, jobId = null) {
     return () => controller.abort()
   }, [mode, jobId, revision, requestKey])
 
-  async function apply(jobIdToApply, coverLetter = '') {
-    const body = coverLetter.trim() ? { cover_letter: coverLetter.trim() } : {}
+  async function apply(jobIdToApply, coverLetterOrPayload = '') {
+    if (typeof FormData !== 'undefined' && coverLetterOrPayload instanceof FormData) {
+      return api(`/jobs/${jobIdToApply}/applications`, { method: 'POST', body: coverLetterOrPayload })
+    }
+    if (coverLetterOrPayload !== null && typeof coverLetterOrPayload === 'object') {
+      return api(`/jobs/${jobIdToApply}/applications`, { method: 'POST', body: coverLetterOrPayload })
+    }
+    const body = String(coverLetterOrPayload ?? '').trim() ? { cover_letter: String(coverLetterOrPayload).trim() } : {}
     return api(`/jobs/${jobIdToApply}/applications`, { method: 'POST', body })
   }
 

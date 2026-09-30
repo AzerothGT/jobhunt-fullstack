@@ -121,6 +121,26 @@ test("OpenAPI documents application, recruiter, and catalog operations", async (
     type: "string",
     nullable: true,
   });
+  expect(
+    Object.keys(spec.components.schemas.ApplicationCreateRequest.properties).sort(),
+  ).toEqual(
+    [
+      "cover_letter",
+      "email",
+      "full_name",
+      "phone",
+      "portfolio_url",
+      "resume_name",
+      "resume_size",
+      "website",
+    ].sort(),
+  );
+  expect(spec.components.schemas.Application.properties.resume_size).toMatchObject({
+    type: "integer",
+    minimum: 0,
+    maximum: 12 * 1024 * 1024,
+    nullable: true,
+  });
 
   const updateStatus = spec.paths["/api/applications/{id}/status"].patch;
   expect(updateStatus.requestBody.content["application/json"].schema).toEqual({
