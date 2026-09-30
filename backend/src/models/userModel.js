@@ -1,9 +1,8 @@
+import bcrypt from "bcryptjs";
 import sql from "../config/db.js";
 
-const BCRYPT = { algorithm: "bcrypt", cost: 10 };
-
 export function hashPassword(password) {
-  return Bun.password.hash(password, BCRYPT);
+  return bcrypt.hash(password, 10);
 }
 
 export async function createUser({ name, email, password, role }) {
@@ -12,7 +11,7 @@ export async function createUser({ name, email, password, role }) {
     VALUES (${name}, ${email}, ${await hashPassword(password)}, ${role})
   `;
 
-  return findUserById(result.lastInsertRowid);
+  return findUserById(result.insertId ?? result.lastInsertRowid);
 }
 
 export async function findUserById(id) {

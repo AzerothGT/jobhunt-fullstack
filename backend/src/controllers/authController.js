@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { signToken } from "../middleware/auth.js";
 import { HttpError } from "../middleware/errorHandler.js";
 import { createUser, findUserByEmail } from "../models/userModel.js";
@@ -54,7 +55,7 @@ export async function login(request, response) {
   }
 
   const user = await findUserByEmail(email.trim());
-  const matches = user && (await Bun.password.verify(password, user.password));
+  const matches = user && (await bcrypt.compare(password, user.password));
 
   if (!matches) {
     throw new HttpError(401, "Invalid email or password");

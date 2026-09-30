@@ -24,7 +24,7 @@ export async function createJob(job) {
        ${job.description}, ${job.requirements}, ${job.salary_min}, ${job.salary_max})
   `;
 
-  return findJobById(result.lastInsertRowid);
+  return findJobById(result.insertId ?? result.lastInsertRowid);
 }
 
 export async function findJobById(id) {
