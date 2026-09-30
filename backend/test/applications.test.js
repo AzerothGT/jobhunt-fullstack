@@ -122,6 +122,54 @@ test("only the owning recruiter can view applicants and update their status", as
   })).status).toBe(404);
 });
 
+test("apply accepts wizard fields and exposes them to history and recruiter", async () => {
+  const owner = await recruiter();
+  const applicant = await seeker();
+  const job = await createJob(server.url, owner.token);
+  const body = {
+    cover_letter: "Dear team, I am excited to apply.",
+    full_name: "Rick Grimes",
+    phone: "+62 89 580 618 4222",
+    email: applicant.user.email,
+    website: "rickgrimes.com",
+    portfolio_url: "dribbble.com/rickgrimes",
+    resume_name: "Sr. Web Designer Role - Rick.pdf",
+    resume_size: 2 * 1024 * 1024,
+  };
+
+  const response = await apply(job.id, applicant.token, body);
+  expect(response.status).toBe(201);
+  expect((await response.json()).application).toMatchObject(body);
+
+  const history = await send("GET", "/api/applications/mine", { token: applicant.token });
+  expect(history.status).toBe(200);
+  expect((await history.json()).data[0]).toMatchObject({
+    full_name: "Rick Grimes",
+    phone: "+62 89 580 618 4222",
+    resume_name: "Sr. Web Designer Role - Rick.pdf",
+    resume_size: 2 * 1024 * 1024,
+  });
+
+  const list = await send("GET", `/api/jobs/${job.id}/applicants`, { token: owner.token });
+  expect(list.status).toBe(200);
+  expect((await list.json()).data[0]).toMatchObject({
+    full_name: "Rick Grimes",
+    website: "rickgrimes.com",
+    portfolio_url: "dribbble.com/rickgrimes",
+  });
+});
+
+test("apply rejects invalid wizard fields", async () => {
+  const owner = await recruiter();
+  const applicant = await seeker();
+  const job = await createJob(server.url, owner.token);
+
+  expect((await apply(job.id, applicant.token, { resume_size: 20 * 1024 * 1024 })).status).toBe(400);
+  expect((await apply(job.id, applicant.token, { resume_size: -5 })).status).toBe(400);
+  expect((await apply(job.id, applicant.token, { phone: 628123 })).status).toBe(400);
+  expect((await apply(job.id, applicant.token, { full_name: "  " })).status).toBe(400);
+});
+
 test("recruiter dashboard counts only their jobs and applications", async () => {
   const owner = await recruiter();
   const other = await recruiter();
