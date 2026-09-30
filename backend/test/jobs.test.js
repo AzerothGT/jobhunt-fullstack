@@ -134,18 +134,50 @@ test("GET /api/jobs hides jobs that are closed", async () => {
   expect(body.data[0].id).toBe(open.id);
 });
 
+test("GET /api/jobs sorts by applicant count and returns per-job counts", async () => {
+  const { token } = await recruiter();
+  const popular = await createJob(server.url, token, { title: "Popular" });
+  const recent = await createJob(server.url, token, { title: "Recent" });
+  const closed = await createJob(server.url, token, { title: "Closed" });
+  const applicantA = await seeker();
+  const applicantB = await seeker();
+
+  await send("POST", `/api/jobs/${popular.id}/applications`, { token: applicantA.token, body: {} });
+  await send("POST", `/api/jobs/${popular.id}/applications`, { token: applicantB.token, body: {} });
+  await send("POST", `/api/jobs/${recent.id}/applications`, { token: applicantA.token, body: {} });
+  await send("POST", `/api/jobs/${closed.id}/applications`, { token: applicantA.token, body: {} });
+  await send("PUT", `/api/jobs/${closed.id}`, { token, body: { is_active: false } });
+
+  const recentFirst = await (await fetch(`${server.url}/api/jobs`)).json();
+  const popularFirst = await (await fetch(`${server.url}/api/jobs?sort=applicants`)).json();
+
+  expect(recentFirst.data.map((job) => job.title)).toEqual(["Recent", "Popular"]);
+  expect(popularFirst.data.map((job) => [job.title, job.applicant_count])).toEqual([
+    ["Popular", 2],
+    ["Recent", 1],
+  ]);
+  expect((await fetch(`${server.url}/api/jobs?sort=invalid`)).status).toBe(400);
+});
+
 test("GET /api/jobs filters by keyword across title and company", async () => {
   const { token } = await recruiter();
   await createJob(server.url, token, { title: "Frontend Engineer", company: "Acme" });
   await createJob(server.url, token, { title: "Data Analyst", company: "Globex" });
+  await createJob(server.url, token, {
+    title: "Designer",
+    company: "Initech",
+    description: "frontend work",
+  });
 
   const byTitle = await (await fetch(`${server.url}/api/jobs?keyword=frontend`)).json();
   const byCompany = await (await fetch(`${server.url}/api/jobs?keyword=globex`)).json();
+  const byDescription = await (await fetch(`${server.url}/api/jobs?keyword=work`)).json();
 
   expect(byTitle.data).toHaveLength(1);
   expect(byTitle.data[0].title).toBe("Frontend Engineer");
   expect(byCompany.data).toHaveLength(1);
   expect(byCompany.data[0].company).toBe("Globex");
+  expect(byDescription.total).toBe(0);
 });
 
 test("GET /api/jobs filters by type and location", async () => {
