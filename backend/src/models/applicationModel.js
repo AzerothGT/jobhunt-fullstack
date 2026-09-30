@@ -22,7 +22,7 @@ export async function createApplication({
        ${website}, ${portfolio_url}, ${resume_name}, ${resume_size}, ${resume_mime}, ${resume_data})
   `;
 
-  return findApplicationById(result.lastInsertRowid);
+  return findApplicationById(result.insertId ?? result.lastInsertRowid);
 }
 
 export function resumeUrlFor(application) {
