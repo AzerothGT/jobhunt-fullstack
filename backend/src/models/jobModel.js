@@ -2,9 +2,17 @@ import sql from "../config/db.js";
 
 const COLUMNS = `id, recruiter_id, title, company, location, type, description,
   requirements, salary_min, salary_max, is_active, created_at`;
+const LIST_COLUMNS = `j.id, j.recruiter_id, j.title, j.company, j.location, j.type,
+  j.description, j.requirements, j.salary_min, j.salary_max, j.is_active, j.created_at`;
 
 function mapJob(row) {
-  return row ? { ...row, is_active: Boolean(row.is_active) } : undefined;
+  return row
+    ? {
+        ...row,
+        is_active: Boolean(row.is_active),
+        ...(row.applicant_count === undefined ? {} : { applicant_count: Number(row.applicant_count) }),
+      }
+    : undefined;
 }
 
 export async function createJob(job) {
@@ -25,29 +33,36 @@ export async function findJobById(id) {
   return mapJob(row);
 }
 
-export async function findActiveJobs({ page, limit, keyword, type, location }) {
-  const conditions = ["is_active = TRUE"];
+export async function findActiveJobs({ page, limit, keyword, type, location, sort }) {
+  const conditions = ["j.is_active = TRUE"];
   const filters = [];
 
   if (keyword) {
-    conditions.push("(title LIKE ? OR company LIKE ? OR description LIKE ?)");
-    filters.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
+    conditions.push("(j.title LIKE ? OR j.company LIKE ?)");
+    filters.push(`%${keyword}%`, `%${keyword}%`);
   }
 
   if (type) {
-    conditions.push("type = ?");
+    conditions.push("j.type = ?");
     filters.push(type);
   }
 
   if (location) {
-    conditions.push("location LIKE ?");
+    conditions.push("j.location LIKE ?");
     filters.push(`%${location}%`);
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const [{ total }] = await sql.unsafe(`SELECT COUNT(*) AS total FROM jobs ${where}`, filters);
+  const [{ total }] = await sql.unsafe(`SELECT COUNT(*) AS total FROM jobs AS j ${where}`, filters);
+  const orderBy =
+    sort === "applicants"
+      ? "applicant_count DESC, j.created_at DESC, j.id DESC"
+      : "j.created_at DESC, j.id DESC";
   const rows = await sql.unsafe(
-    `SELECT ${COLUMNS} FROM jobs ${where} ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`,
+    `SELECT ${LIST_COLUMNS},
+      (SELECT COUNT(*) FROM applications AS a WHERE a.job_id = j.id) AS applicant_count
+     FROM jobs AS j ${where}
+     ORDER BY ${orderBy} LIMIT ? OFFSET ?`,
     [...filters, limit, (page - 1) * limit],
   );
 
