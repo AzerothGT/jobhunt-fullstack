@@ -21,6 +21,8 @@ export function isCurrentAuthSession(token, generation) {
   return generation === authSessionGeneration && isCurrentAuthToken(token)
 }
 
+const API_BASE = String(import.meta.env?.VITE_API_URL ?? '').replace(/\/+$/, '')
+
 export async function api(path, options = {}) {
   const headers = new Headers(options.headers)
   const isAuthEntryRequest = path === '/auth/login' || path === '/auth/register'
@@ -37,7 +39,7 @@ export async function api(path, options = {}) {
   if (isAuthEntryRequest) headers.delete('Authorization')
   else if (token) headers.set('Authorization', `Bearer ${token}`)
 
-  const response = await fetch(`/api${path}`, { ...options, headers, body })
+  const response = await fetch(`${API_BASE}/api${path}`, { ...options, headers, body })
   let data = null
 
   try {

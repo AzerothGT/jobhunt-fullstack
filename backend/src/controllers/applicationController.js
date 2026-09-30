@@ -1,10 +1,9 @@
 import { HttpError } from "../middleware/errorHandler.js";
-import { isText, parseId } from "../middleware/validation.js";
+import { isDuplicateEntry, isText, parseId } from "../middleware/validation.js";
 import * as applications from "../models/applicationModel.js";
 import * as jobs from "../models/jobModel.js";
 
 const STATUSES = new Set(["pending", "reviewed", "rejected"]);
-const DUPLICATE_ENTRY = 1062;
 const MAX_RESUME_SIZE = 12 * 1024 * 1024;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RESUME_EXTENSIONS = new Set([".pdf", ".doc", ".docx"]);
@@ -77,6 +76,7 @@ function validateResumeFile(file) {
 function toDownloadBuffer(value) {
   if (Buffer.isBuffer(value)) return value;
   if (value instanceof Uint8Array) return Buffer.from(value);
+  if (value instanceof ArrayBuffer) return Buffer.from(new Uint8Array(value));
   if (typeof value === "string") return Buffer.from(value, "latin1");
   return Buffer.from(value);
 }
@@ -159,7 +159,7 @@ export async function applyToJob(request, response) {
 
     response.status(201).json({ application: withoutRecruiterId(application) });
   } catch (error) {
-    if (error.errno === DUPLICATE_ENTRY) {
+    if (isDuplicateEntry(error)) {
       throw new HttpError(409, "You have already applied to this job");
     }
     throw error;
