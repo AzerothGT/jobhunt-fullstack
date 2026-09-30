@@ -35,12 +35,12 @@ export default function AuthPage({ mode }) {
       <div className="auth-aside">
         <span className="eyebrow">{isRegister ? 'MULAI DI SINI' : 'SELAMAT DATANG KEMBALI'}</span>
         <p>{isRegister ? 'Satu langkah kecil menuju pekerjaan yang lebih berarti.' : 'Tempat yang baik untuk bekerja dimulai dengan pencarian yang baik.'}</p>
-        <span className="auth-aside-mark" aria-hidden="true">R.</span>
+        <span className="auth-aside-mark" aria-hidden="true">J.</span>
       </div>
       <section className="auth-panel" aria-labelledby="auth-title">
-        <span className="eyebrow">AKUN RUANG KERJA</span>
+        <span className="eyebrow">AKUN JOBHUNT</span>
         <h1 id="auth-title">{isRegister ? 'Buat akun.' : 'Masuk ke akun.'}</h1>
-        <p className="auth-lead">{isRegister ? 'Pilih bagaimana Anda ingin menggunakan Ruang Kerja.' : 'Lanjutkan perjalanan Anda dari sini.'}</p>
+        <p className="auth-lead">{isRegister ? 'Pilih bagaimana Anda ingin menggunakan JobHunt.' : 'Lanjutkan perjalanan Anda dari sini.'}</p>
         {error && <p className="form-error" role="alert">{error}</p>}
         <form className="form-stack" onSubmit={submit}>
           {isRegister && (

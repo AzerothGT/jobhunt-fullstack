@@ -10,7 +10,7 @@ export default function ProfilePage() {
       <header className="page-heading">
         <span className="eyebrow">AKUN ANDA</span>
         <h1>Profil <em>pribadi.</em></h1>
-        <p>Informasi dasar yang terhubung dengan akun Ruang Kerja Anda.</p>
+        <p>Informasi dasar yang terhubung dengan akun JobHunt Anda.</p>
       </header>
       <section className="profile-card" aria-labelledby="profile-name">
         <div className="profile-avatar" aria-hidden="true">{initial}</div>
@@ -19,7 +19,7 @@ export default function ProfilePage() {
           <h2 id="profile-name">{user.name}</h2>
           <p>{user.email}</p>
         </div>
-        <span className="profile-mark" aria-hidden="true">RK</span>
+        <span className="profile-mark" aria-hidden="true">JH</span>
       </section>
     </div>
   )

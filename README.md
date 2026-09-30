@@ -1,4 +1,9 @@
-# Jobhunt Fullstack
+# JobHunt
+
+JobHunt adalah aplikasi web job board dengan dua jenis pengguna:
+
+- **Job Seeker**: melihat dan mencari lowongan kerja, melihat detail job, serta melamar pekerjaan.
+- **Recruiter**: memposting lowongan kerja, mengelola postingan miliknya, dan melihat siapa saja yang melamar.
 
 Monorepo aplikasi Express dan React yang dikelola dengan Bun.
 

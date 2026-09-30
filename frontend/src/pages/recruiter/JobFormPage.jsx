@@ -95,7 +95,7 @@ export default function JobFormPage({ mode }) {
 
   return (
     <div className="page-shell job-form-page">
-      <Link className="back-link" to="/dashboard">← Ruang rekrutmen</Link>
+      <Link className="back-link" to="/dashboard">← Dasbor recruiter</Link>
       <header className="page-heading"><span className="eyebrow">{isEdit ? 'PERBARUI POSISI' : 'BAGIKAN KESEMPATAN'}</span><h1>{isEdit ? 'Edit lowongan.' : 'Pasang lowongan.'}</h1><p>Informasi yang jelas membantu kandidat menemukan kecocokan.</p></header>
       <form className="job-form form-stack" onSubmit={submit}>
         {submitError && <p className="form-error" role="alert">{submitError}</p>}
