@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
+import applicantsRoutes from "./routes/applicantsRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
 import docsRoutes from "./routes/docsRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
@@ -17,6 +18,7 @@ app.use("/api", docsRoutes);
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use("/api/applicants", applicantsRoutes);
 app.use("/api/recruiter", recruiterRoutes);
 app.use("/api/jobs", jobRoutes);
 

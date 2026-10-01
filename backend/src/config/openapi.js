@@ -31,6 +31,7 @@ const openApiSpec = {
     { name: "Authentication" },
     { name: "Jobs" },
     { name: "Applications" },
+    { name: "Applicants" },
     { name: "Recruiter" },
   ],
   paths: {
@@ -290,6 +291,44 @@ const openApiSpec = {
     "/api/applications/{id}": {
       put: {
         tags: ["Applications"],
+        summary: "Update an application status",
+        security: bearer,
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            description: "Positive application ID",
+            schema: { type: "integer", minimum: 1 },
+          },
+        ],
+        requestBody: requestBody("ApplicationStatusRequest"),
+        responses: {
+          "200": json("Application status updated", ref("ApplicationResponse")),
+          "400": error("Invalid application ID or status"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only the owning recruiter can manage this application"),
+          "404": error("Application not found"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/applicants/mine": {
+      get: {
+        tags: ["Applicants"],
+        summary: "List the authenticated job seeker's applications",
+        security: bearer,
+        responses: {
+          "200": json("Applicant's applications", ref("ApplicationListResponse")),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only job seekers can list their applications"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/applicants/{id}": {
+      put: {
+        tags: ["Applicants"],
         summary: "Update an application status",
         security: bearer,
         parameters: [
