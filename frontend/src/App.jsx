@@ -1,6 +1,8 @@
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import SiteLayout from './components/SiteLayout.jsx'
 import { LoadingState } from './components/PageState.jsx'
+import { Button } from '@/components/ui/button'
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { useAuth } from './hooks/useAuth.js'
 import ApplicationsPage from './pages/ApplicationsPage.jsx'
 import ApplyWizardPage from './pages/ApplyWizardPage.jsx'
@@ -12,7 +14,6 @@ import ProfilePage from './pages/ProfilePage.jsx'
 import ApplicantsPage from './pages/recruiter/ApplicantsPage.jsx'
 import DashboardPage from './pages/recruiter/DashboardPage.jsx'
 import JobFormPage from './pages/recruiter/JobFormPage.jsx'
-import './App.css'
 
 function Protected({ roles, children }) {
   const { user, loading } = useAuth()
@@ -24,7 +25,17 @@ function Protected({ roles, children }) {
 }
 
 function NotFoundPage() {
-  return <section className="page-shell not-found"><span className="eyebrow">HALAMAN TIDAK DITEMUKAN · 404</span><h1>Sepertinya tersesat.</h1><p>Halaman ini belum menjadi bagian dari jurnal kami.</p><Link className="button" to="/jobs">Jelajahi lowongan <span aria-hidden="true">↗</span></Link></section>
+  return (
+    <Empty>
+      <EmptyHeader>
+        <EmptyTitle>Halaman tidak ditemukan · 404</EmptyTitle>
+        <EmptyDescription>Sepertinya tersesat. Halaman ini belum menjadi bagian dari kami.</EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button render={<Link to="/jobs" />}>Jelajahi lowongan</Button>
+      </EmptyContent>
+    </Empty>
+  )
 }
 
 export default function App() {
