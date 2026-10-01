@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { EmptyState, ErrorState, LoadingState } from '../../components/PageState.jsx'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -95,6 +96,7 @@ export default function JobFormPage({ mode }) {
     setSubmitting(true)
     try {
       const result = await api(isEdit ? `/jobs/${id}` : '/jobs', { method: isEdit ? 'PUT' : 'POST', body })
+      toast.success(isEdit ? 'Lowongan diperbarui.' : 'Lowongan dipublikasikan.')
       navigate(`/jobs/${result.job.id}`)
     } catch (requestError) {
       setSubmitError(requestError.message)

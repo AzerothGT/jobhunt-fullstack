@@ -1,6 +1,7 @@
 import { ArrowLeft, Check, FileText, Pencil, Trash2, Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -198,6 +199,7 @@ export default function ApplyWizardPage() {
     try {
       await api(`/jobs/${id}/applications`, { method: 'POST', body: form })
       setSubmitted(true)
+      toast.success('Lamaran terkirim.')
     } catch (requestError) {
       setError(requestError.message)
     } finally {

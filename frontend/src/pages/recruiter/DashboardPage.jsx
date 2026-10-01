@@ -1,7 +1,19 @@
 import { ArrowRight, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { EmptyState, ErrorState, LoadingState } from '../../components/PageState.jsx'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -37,6 +49,25 @@ export default function DashboardPage() {
     setLoading(true)
     setError('')
     setRetry((value) => value + 1)
+  }
+
+  const [deletingId, setDeletingId] = useState(null)
+
+  async function removeJob(job) {
+    setDeletingId(job.id)
+    try {
+      await api(`/jobs/${job.id}`, { method: 'DELETE' })
+      setJobs((current) => current.filter((item) => item.id !== job.id))
+      setStats((current) => current && {
+        total_jobs: Math.max(0, (current.total_jobs ?? 1) - 1),
+        total_applicants: current.total_applicants ?? 0,
+      })
+      toast.success('Lowongan dihapus.')
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   return (
@@ -108,6 +139,30 @@ export default function DashboardPage() {
                         <Button variant="ghost" size="sm" render={<Link to={`/jobs/${job.id}`} />}>
                           Lihat
                         </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger
+                            render={<Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" />}
+                          >
+                            Hapus
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Hapus lowongan?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tindakan ini akan menghapus lowongan {job.title} yang dipilih beserta lamarannya.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Batal</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => removeJob(job)}
+                                disabled={deletingId === job.id}
+                              >
+                                {deletingId === job.id ? 'Menghapus…' : 'Hapus'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </CardContent>
                   </Card>

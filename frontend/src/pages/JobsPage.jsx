@@ -23,7 +23,7 @@ import { useJobs } from '../hooks/useJobs.js'
 import { JOB_TYPES, jobTypeLabel } from '../utils/format.js'
 
 export default function JobsPage() {
-  const { jobs, filters, setFilter, page, total, totalPages, loading, error, refresh } = useJobs()
+  const { jobs, filters, setFilter, page, total, totalPages, loading, error, refresh } = useJobs({ syncParams: true })
 
   return (
     <div className="flex flex-col gap-6">
