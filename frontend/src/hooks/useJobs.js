@@ -1,8 +1,37 @@
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { api } from '../utils/api.js'
 
-export function useJobs({ limit = 9 } = {}) {
-  const [filters, setFilters] = useState({ page: 1, keyword: '', type: '', location: '', sort: 'recent' })
+const SORTS = new Set(['recent', 'applicants'])
+
+function filtersFromParams(params) {
+  const page = Number(params.get('page'))
+  const sort = params.get('sort')
+  return {
+    page: Number.isInteger(page) && page >= 1 ? page : 1,
+    keyword: params.get('keyword') ?? '',
+    type: params.get('type') ?? '',
+    location: params.get('location') ?? '',
+    sort: SORTS.has(sort) ? sort : 'recent',
+  }
+}
+
+function paramsFromFilters(filters) {
+  const params = new URLSearchParams()
+  if (filters.page > 1) params.set('page', String(filters.page))
+  if (filters.keyword.trim()) params.set('keyword', filters.keyword.trim())
+  if (filters.type) params.set('type', filters.type)
+  if (filters.location.trim()) params.set('location', filters.location.trim())
+  if (filters.sort !== 'recent') params.set('sort', filters.sort)
+  return params
+}
+
+export function useJobs({ limit = 9, syncParams = false } = {}) {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [filters, setFilters] = useState(() => ({
+    page: 1, keyword: '', type: '', location: '', sort: 'recent',
+    ...(syncParams ? filtersFromParams(searchParams) : {}),
+  }))
   const [keyword, setKeyword] = useState('')
   const [jobs, setJobs] = useState([])
   const [page, setPage] = useState(1)
@@ -50,7 +79,11 @@ export function useJobs({ limit = 9 } = {}) {
     if (name === 'keyword' && value.trim() !== keyword) request.current?.abort()
     setLoading(true)
     setError('')
-    setFilters((current) => ({ ...current, [name]: value, ...(name === 'page' ? {} : { page: 1 }) }))
+    setFilters((current) => {
+      const next = { ...current, [name]: value, ...(name === 'page' ? {} : { page: 1 }) }
+      if (syncParams) setSearchParams(paramsFromFilters(next), { replace: true })
+      return next
+    })
   }
 
   function refresh() {

@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { EmptyState, ErrorState, LoadingState } from '../../components/PageState.jsx'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -66,6 +67,7 @@ export default function ApplicantsPage() {
     setRowErrors((current) => ({ ...current, [applicationId]: '' }))
     try {
       await updateStatus(applicationId, status)
+      toast.success('Status lamaran diperbarui.')
     } catch (requestError) {
       setRowErrors((current) => ({ ...current, [applicationId]: requestError.message }))
     } finally {

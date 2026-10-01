@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowUpRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { EmptyState, ErrorState, LoadingState } from '../components/PageState.jsx'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -60,6 +61,7 @@ export default function JobDetailPage() {
     try {
       await apply(id, coverLetter)
       setApplied(true)
+      toast.success('Lamaran terkirim.')
     } catch (requestError) {
       setApplyError(requestError.message)
     } finally {

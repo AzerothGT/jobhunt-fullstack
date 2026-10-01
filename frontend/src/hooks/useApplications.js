@@ -43,8 +43,8 @@ export function useApplications(mode = null, jobId = null) {
   }
 
   async function updateStatus(applicationId, status) {
-    const { application } = await api(`/applications/${applicationId}/status`, {
-      method: 'PATCH',
+    const { application } = await api(`/applications/${applicationId}`, {
+      method: 'PUT',
       body: { status },
     })
     setApplications((current) => current.map((item) => item.id === applicationId ? { ...item, ...application } : item))
