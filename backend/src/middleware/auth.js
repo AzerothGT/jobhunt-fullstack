@@ -1,11 +1,12 @@
 import jwt from "jsonwebtoken";
-import { findUserById } from "../models/userModel.js";
+import { findUserById, withRoles } from "../models/userModel.js";
 import { HttpError } from "./errorHandler.js";
 
 const ROLE_LABELS = { recruiter: "recruiter", job_seeker: "job seeker" };
+const ROLES = new Set(["job_seeker", "recruiter"]);
 
-export function signToken(user) {
-  return jwt.sign({ role: user.role }, process.env.JWT_SECRET, {
+export function signToken(user, role = user.role) {
+  return jwt.sign({ role }, process.env.JWT_SECRET, {
     subject: String(user.id),
     expiresIn: process.env.JWT_EXPIRES_IN ?? "7d",
   });
@@ -31,7 +32,8 @@ export async function requireAuth(request, _response, next) {
       throw new HttpError(401, "Invalid or expired token");
     }
 
-    request.user = user;
+    const activeRole = ROLES.has(payload.role) ? payload.role : user.role;
+    request.user = { ...(await withRoles(user)), role: activeRole };
     next();
   } catch (error) {
     next(error);
