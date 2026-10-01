@@ -31,6 +31,8 @@ const openApiSpec = {
     { name: "Authentication" },
     { name: "Jobs" },
     { name: "Applications" },
+    { name: "Applicants" },
+    { name: "Bookmarks" },
     { name: "Recruiter" },
   ],
   paths: {
@@ -85,6 +87,35 @@ const openApiSpec = {
             properties: { user: ref("User") },
           }),
           "401": error("Authentication required or token invalid"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/auth/roles": {
+      post: {
+        tags: ["Authentication"],
+        summary: "Enable an additional role for the account",
+        security: bearer,
+        requestBody: requestBody("RoleRequest"),
+        responses: {
+          "200": json("Roles updated", ref("RolesResponse")),
+          "400": error("Invalid role"),
+          "401": error("Authentication required or token invalid"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/auth/switch": {
+      post: {
+        tags: ["Authentication"],
+        summary: "Switch the active role and get a new token",
+        security: bearer,
+        requestBody: requestBody("RoleRequest"),
+        responses: {
+          "200": json("Role switched and token issued", ref("AuthResponse")),
+          "400": error("Invalid role"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Role not enabled for this account"),
           "500": serverError(),
         },
       },
@@ -312,6 +343,44 @@ const openApiSpec = {
         },
       },
     },
+    "/api/applicants/mine": {
+      get: {
+        tags: ["Applicants"],
+        summary: "List the authenticated job seeker's applications",
+        security: bearer,
+        responses: {
+          "200": json("Applicant's applications", ref("ApplicationListResponse")),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only job seekers can list their applications"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/applicants/{id}": {
+      put: {
+        tags: ["Applicants"],
+        summary: "Update an application status",
+        security: bearer,
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            description: "Positive application ID",
+            schema: { type: "integer", minimum: 1 },
+          },
+        ],
+        requestBody: requestBody("ApplicationStatusRequest"),
+        responses: {
+          "200": json("Application status updated", ref("ApplicationResponse")),
+          "400": error("Invalid application ID or status"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only the owning recruiter can manage this application"),
+          "404": error("Application not found"),
+          "500": serverError(),
+        },
+      },
+    },
     "/api/jobs/{id}/applicants": {
       get: {
         tags: ["Applications"],
@@ -324,6 +393,49 @@ const openApiSpec = {
           "401": error("Authentication required or token invalid"),
           "403": error("Only the owning recruiter can view these applicants"),
           "404": error("Job not found"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/jobs/{id}/bookmark": {
+      parameters: [jobId],
+      post: {
+        tags: ["Bookmarks"],
+        summary: "Bookmark a job",
+        security: bearer,
+        responses: {
+          "200": json("Job already bookmarked", ref("BookmarkResponse")),
+          "201": json("Job bookmarked", ref("BookmarkResponse")),
+          "400": error("Invalid job ID"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only job seekers can bookmark jobs"),
+          "404": error("Job not found"),
+          "500": serverError(),
+        },
+      },
+      delete: {
+        tags: ["Bookmarks"],
+        summary: "Remove a job bookmark",
+        security: bearer,
+        responses: {
+          "200": json("Bookmark removed", ref("Message")),
+          "400": error("Invalid job ID"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only job seekers can bookmark jobs"),
+          "404": error("Bookmark not found"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/bookmarks/mine": {
+      get: {
+        tags: ["Bookmarks"],
+        summary: "List the authenticated job seeker's bookmarked jobs",
+        security: bearer,
+        responses: {
+          "200": json("Bookmarked jobs", ref("BookmarkListResponse")),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only job seekers can list their bookmarks"),
           "500": serverError(),
         },
       },
@@ -423,6 +535,7 @@ const openApiSpec = {
           name: { type: "string" },
           email: { type: "string", format: "email" },
           role: { type: "string", enum: ["job_seeker", "recruiter"] },
+          roles: { type: "array", items: { type: "string", enum: ["job_seeker", "recruiter"] } },
           created_at: { type: "string", format: "date-time" },
         },
       },
@@ -447,6 +560,18 @@ const openApiSpec = {
         properties: {
           email: { type: "string", format: "email" },
           password: { type: "string", minLength: 1, pattern: "\\S" },
+        },
+      },
+      RoleRequest: {
+        type: "object",
+        required: ["role"],
+        properties: { role: { type: "string", enum: ["job_seeker", "recruiter"] } },
+      },
+      RolesResponse: {
+        type: "object",
+        required: ["roles"],
+        properties: {
+          roles: { type: "array", items: { type: "string", enum: ["job_seeker", "recruiter"] } },
         },
       },
       Job: {
@@ -584,6 +709,39 @@ const openApiSpec = {
           total_jobs: { type: "integer", minimum: 0 },
           total_applicants: { type: "integer", minimum: 0 },
         },
+      },
+      Bookmark: {
+        type: "object",
+        required: ["id", "user_id", "job_id", "created_at"],
+        properties: {
+          id: { type: "integer" },
+          user_id: { type: "integer" },
+          job_id: { type: "integer" },
+          created_at: { type: "string", format: "date-time" },
+        },
+      },
+      BookmarkResponse: {
+        type: "object",
+        required: ["bookmark"],
+        properties: { bookmark: ref("Bookmark") },
+      },
+      BookmarkListResponse: {
+        type: "object",
+        required: ["data"],
+        properties: { data: { type: "array", items: ref("BookmarkedJob") } },
+      },
+      BookmarkedJob: {
+        allOf: [
+          ref("Job"),
+          {
+            type: "object",
+            required: ["bookmark_id", "bookmarked_at"],
+            properties: {
+              bookmark_id: { type: "integer" },
+              bookmarked_at: { type: "string", format: "date-time" },
+            },
+          },
+        ],
       },
       CatalogJob: {
         allOf: [

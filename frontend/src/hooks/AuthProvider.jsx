@@ -69,6 +69,18 @@ export default function AuthProvider({ children }) {
     return persistSession(session)
   }
 
+  async function switchToRole(role) {
+    try {
+      const session = await api('/auth/switch', { method: 'POST', body: { role } })
+      return persistSession(session)
+    } catch (requestError) {
+      if (!String(requestError.message).includes('Enable the')) throw requestError
+      await api('/auth/roles', { method: 'POST', body: { role } })
+      const session = await api('/auth/switch', { method: 'POST', body: { role } })
+      return persistSession(session)
+    }
+  }
+
   function logout() {
     globalThis.localStorage?.removeItem(AUTH_TOKEN_KEY)
     globalThis.localStorage?.removeItem(AUTH_USER_KEY)
@@ -77,5 +89,5 @@ export default function AuthProvider({ children }) {
     setLoading(false)
   }
 
-  return <AuthContext.Provider value={{ user, loading, login, register, logout }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, loading, login, register, switchToRole, logout }}>{children}</AuthContext.Provider>
 }

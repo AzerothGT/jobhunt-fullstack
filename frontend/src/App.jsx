@@ -11,6 +11,7 @@ import HomePage from './pages/HomePage.jsx'
 import JobDetailPage from './pages/JobDetailPage.jsx'
 import JobsPage from './pages/JobsPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
+import SavedJobsPage from './pages/SavedJobsPage.jsx'
 import ApplicantsPage from './pages/recruiter/ApplicantsPage.jsx'
 import DashboardPage from './pages/recruiter/DashboardPage.jsx'
 import JobFormPage from './pages/recruiter/JobFormPage.jsx'
@@ -49,6 +50,7 @@ export default function App() {
         <Route path="register" element={<AuthPage mode="register" />} />
         <Route path="profile" element={<Protected><ProfilePage /></Protected>} />
         <Route path="applications" element={<Protected roles={['job_seeker']}><ApplicationsPage /></Protected>} />
+        <Route path="bookmarks" element={<Protected roles={['job_seeker']}><SavedJobsPage /></Protected>} />
         <Route path="jobs/:id/apply" element={<Protected roles={['job_seeker']}><ApplyWizardPage /></Protected>} />
         <Route path="dashboard" element={<Protected roles={['recruiter']}><DashboardPage /></Protected>} />
         <Route path="jobs/create" element={<Protected roles={['recruiter']}><JobFormPage mode="create" /></Protected>} />

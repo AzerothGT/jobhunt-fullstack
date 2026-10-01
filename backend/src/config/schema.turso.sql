@@ -47,3 +47,19 @@ CREATE TABLE IF NOT EXISTS applications (
 );
 
 CREATE INDEX IF NOT EXISTS idx_applications_applicant ON applications (applicant_id);
+
+CREATE TABLE IF NOT EXISTS bookmarks (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id    INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  job_id     INTEGER NOT NULL REFERENCES jobs (id) ON DELETE CASCADE,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (user_id, job_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_bookmarks_user ON bookmarks (user_id);
+
+CREATE TABLE IF NOT EXISTS user_roles (
+  user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  role    TEXT NOT NULL CHECK (role IN ('job_seeker', 'recruiter')),
+  PRIMARY KEY (user_id, role)
+);

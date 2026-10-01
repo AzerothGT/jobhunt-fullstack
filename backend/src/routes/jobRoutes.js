@@ -9,6 +9,7 @@ import {
   updateJob,
 } from "../controllers/jobController.js";
 import { applyToJob, listJobApplicants } from "../controllers/applicationController.js";
+import { addBookmark, removeBookmark } from "../controllers/bookmarkController.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router = Router();
@@ -35,6 +36,8 @@ router.post(
   applyToJob,
 );
 router.get("/:id/applicants", requireAuth, requireRole("recruiter"), listJobApplicants);
+router.post("/:id/bookmark", requireAuth, requireRole("job_seeker"), addBookmark);
+router.delete("/:id/bookmark", requireAuth, requireRole("job_seeker"), removeBookmark);
 router.get("/:id", getJob);
 router.post("/", requireAuth, requireRole("recruiter"), createJob);
 router.put("/:id", requireAuth, requireRole("recruiter"), updateJob);

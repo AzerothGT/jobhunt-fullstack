@@ -1,28 +1,49 @@
+import { Check } from 'lucide-react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Toaster } from '@/components/ui/sonner'
 import { cn } from 'cn'
 import { useAuth } from '../hooks/useAuth.js'
 
+const ROLE_OPTIONS = [
+  { value: 'job_seeker', label: 'Pencari kerja', landing: '/jobs' },
+  { value: 'recruiter', label: 'Recruiter', landing: '/dashboard' },
+]
+
 function navLinkClass({ isActive }) {
   return cn(buttonVariants({ variant: 'ghost', size: 'sm' }), isActive && 'bg-muted text-foreground', !isActive && 'text-muted-foreground')
 }
 
 export default function SiteLayout() {
-  const { user, logout } = useAuth()
+  const { user, logout, switchToRole } = useAuth()
   const navigate = useNavigate()
 
   function signOut() {
     logout()
     navigate('/')
+  }
+
+  async function changeRole(option) {
+    if (user?.role === option.value) return
+    try {
+      await switchToRole(option.value)
+      toast.success(`Mode ${option.label.toLowerCase()} aktif.`)
+      navigate(option.landing)
+    } catch {
+      toast.error('Gagal beralih peran.')
+    }
   }
 
   return (
@@ -41,6 +62,9 @@ export default function SiteLayout() {
             {user?.role === 'job_seeker' && (
               <NavLink to="/applications" className={navLinkClass}>Lamaran saya</NavLink>
             )}
+            {user?.role === 'job_seeker' && (
+              <NavLink to="/bookmarks" className={navLinkClass}>Tersimpan</NavLink>
+            )}
             {user?.role === 'recruiter' && (
               <NavLink to="/dashboard" className={navLinkClass}>Dasbor recruiter</NavLink>
             )}
@@ -58,6 +82,19 @@ export default function SiteLayout() {
                   <DropdownMenuGroup>
                     <DropdownMenuItem render={<Link to="/profile" />}>Profil</DropdownMenuItem>
                     <DropdownMenuItem onClick={signOut}>Keluar</DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="flex items-center gap-2">
+                    Mode
+                    <Badge variant="secondary">{user.role === 'recruiter' ? 'Recruiter' : 'Pencari kerja'}</Badge>
+                  </DropdownMenuLabel>
+                  <DropdownMenuGroup>
+                    {ROLE_OPTIONS.map((option) => (
+                      <DropdownMenuItem key={option.value} onClick={() => changeRole(option)}>
+                        {user.role === option.value && <Check />}
+                        {option.label}
+                      </DropdownMenuItem>
+                    ))}
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
