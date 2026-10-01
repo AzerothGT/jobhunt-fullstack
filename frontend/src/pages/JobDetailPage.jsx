@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { EmptyState, ErrorState, LoadingState } from '../components/PageState.jsx'
+import BookmarkButton from '../components/BookmarkButton.jsx'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -12,6 +13,7 @@ import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { useApplications } from '../hooks/useApplications.js'
 import { useAuth } from '../hooks/useAuth.js'
+import { useBookmarks } from '../hooks/useBookmarks.js'
 import { api } from '../utils/api.js'
 import { formatDate, formatSalary, jobTypeLabel } from '../utils/format.js'
 
@@ -20,6 +22,7 @@ export default function JobDetailPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { apply } = useApplications()
+  const { isBookmarked, toggle: toggleBookmarkState } = useBookmarks(user?.role === 'job_seeker')
   const [job, setJob] = useState(null)
   const [error, setError] = useState('')
   const [retry, setRetry] = useState(0)
@@ -97,6 +100,21 @@ export default function JobDetailPage() {
             </p>
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{job.title}</h1>
             <p className="text-muted-foreground">{job.location}</p>
+            {user?.role === 'job_seeker' && (
+              <div>
+                <BookmarkButton
+                  bookmarked={isBookmarked(job.id)}
+                  onToggle={async () => {
+                    try {
+                      await toggleBookmarkState(job.id, isBookmarked(job.id))
+                      toast.success(isBookmarked(job.id) ? 'Simpanan dihapus.' : 'Lowongan disimpan.')
+                    } catch {
+                      toast.error('Gagal mengubah simpanan.')
+                    }
+                  }}
+                />
+              </div>
+            )}
           </div>
           <Separator />
           <section className="flex flex-col gap-2">
