@@ -1,23 +1,41 @@
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
+import { Skeleton } from '@/components/ui/skeleton'
+
 export function LoadingState({ label = 'Memuat data…' }) {
-  return <div className="state-panel" role="status"><span className="spinner" aria-hidden="true" /><p>{label}</p></div>
+  return (
+    <div className="flex flex-col gap-2" role="status" aria-label={label}>
+      <Skeleton className="h-24 w-full" />
+      <Skeleton className="h-24 w-full" />
+      <p className="text-sm text-muted-foreground">{label}</p>
+    </div>
+  )
 }
 
 export function ErrorState({ message, onRetry }) {
   return (
-    <div className="state-panel state-error" role="alert">
-      <span className="eyebrow">ADA GANGGUAN</span>
-      <p>{message || 'Data belum dapat dimuat.'}</p>
-      {onRetry && <button className="text-button" type="button" onClick={onRetry}>Coba lagi <span aria-hidden="true">↗</span></button>}
-    </div>
+    <Alert variant="destructive">
+      <AlertTitle>Ada gangguan</AlertTitle>
+      <AlertDescription className="flex flex-col items-start gap-2">
+        <span>{message || 'Data belum dapat dimuat.'}</span>
+        {onRetry && (
+          <Button variant="outline" size="sm" type="button" onClick={onRetry}>
+            Coba lagi
+          </Button>
+        )}
+      </AlertDescription>
+    </Alert>
   )
 }
 
 export function EmptyState({ title = 'Belum ada data', children }) {
   return (
-    <div className="state-panel state-empty">
-      <span className="empty-mark" aria-hidden="true">∅</span>
-      <h2>{title}</h2>
-      {children && <p>{children}</p>}
-    </div>
+    <Empty>
+      <EmptyHeader>
+        <EmptyTitle>{title}</EmptyTitle>
+        {children && <EmptyDescription>{children}</EmptyDescription>}
+      </EmptyHeader>
+    </Empty>
   )
 }
