@@ -32,6 +32,7 @@ const openApiSpec = {
     { name: "Jobs" },
     { name: "Applications" },
     { name: "Applicants" },
+    { name: "Bookmarks" },
     { name: "Recruiter" },
   ],
   paths: {
@@ -367,6 +368,49 @@ const openApiSpec = {
         },
       },
     },
+    "/api/jobs/{id}/bookmark": {
+      parameters: [jobId],
+      post: {
+        tags: ["Bookmarks"],
+        summary: "Bookmark a job",
+        security: bearer,
+        responses: {
+          "200": json("Job already bookmarked", ref("BookmarkResponse")),
+          "201": json("Job bookmarked", ref("BookmarkResponse")),
+          "400": error("Invalid job ID"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only job seekers can bookmark jobs"),
+          "404": error("Job not found"),
+          "500": serverError(),
+        },
+      },
+      delete: {
+        tags: ["Bookmarks"],
+        summary: "Remove a job bookmark",
+        security: bearer,
+        responses: {
+          "200": json("Bookmark removed", ref("Message")),
+          "400": error("Invalid job ID"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only job seekers can bookmark jobs"),
+          "404": error("Bookmark not found"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/bookmarks/mine": {
+      get: {
+        tags: ["Bookmarks"],
+        summary: "List the authenticated job seeker's bookmarked jobs",
+        security: bearer,
+        responses: {
+          "200": json("Bookmarked jobs", ref("BookmarkListResponse")),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Only job seekers can list their bookmarks"),
+          "500": serverError(),
+        },
+      },
+    },
     "/api/recruiter/dashboard": {
       get: {
         tags: ["Recruiter"],
@@ -623,6 +667,39 @@ const openApiSpec = {
           total_jobs: { type: "integer", minimum: 0 },
           total_applicants: { type: "integer", minimum: 0 },
         },
+      },
+      Bookmark: {
+        type: "object",
+        required: ["id", "user_id", "job_id", "created_at"],
+        properties: {
+          id: { type: "integer" },
+          user_id: { type: "integer" },
+          job_id: { type: "integer" },
+          created_at: { type: "string", format: "date-time" },
+        },
+      },
+      BookmarkResponse: {
+        type: "object",
+        required: ["bookmark"],
+        properties: { bookmark: ref("Bookmark") },
+      },
+      BookmarkListResponse: {
+        type: "object",
+        required: ["data"],
+        properties: { data: { type: "array", items: ref("BookmarkedJob") } },
+      },
+      BookmarkedJob: {
+        allOf: [
+          ref("Job"),
+          {
+            type: "object",
+            required: ["bookmark_id", "bookmarked_at"],
+            properties: {
+              bookmark_id: { type: "integer" },
+              bookmarked_at: { type: "string", format: "date-time" },
+            },
+          },
+        ],
       },
       CatalogJob: {
         allOf: [

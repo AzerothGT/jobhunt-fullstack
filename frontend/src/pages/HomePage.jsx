@@ -1,7 +1,10 @@
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import JobCard from '../components/JobCard.jsx'
 import { EmptyState, ErrorState, LoadingState } from '../components/PageState.jsx'
+import { useAuth } from '../hooks/useAuth.js'
+import { useBookmarks } from '../hooks/useBookmarks.js'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -9,6 +12,17 @@ import { useJobs } from '../hooks/useJobs.js'
 
 export default function HomePage() {
   const { jobs, total, loading, error, refresh } = useJobs({ limit: 3 })
+  const { user } = useAuth()
+  const { isBookmarked, toggle } = useBookmarks(user?.role === 'job_seeker')
+
+  async function toggleBookmark(jobId, bookmarked) {
+    try {
+      await toggle(jobId, bookmarked)
+      toast.success(bookmarked ? 'Simpanan dihapus.' : 'Lowongan disimpan.')
+    } catch {
+      toast.error('Gagal mengubah simpanan.')
+    }
+  }
 
   return (
     <div className="flex flex-col gap-12">
@@ -63,7 +77,14 @@ export default function HomePage() {
         {!loading && error ? <ErrorState message={error} onRetry={refresh} /> : null}
         {!loading && !error && jobs.length === 0 ? <EmptyState title="Belum ada lowongan aktif">Kembali lagi nanti untuk melihat kesempatan baru.</EmptyState> : null}
         {!loading && !error && jobs.length > 0 && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{jobs.map((job) => <JobCard key={job.id} job={job} />)}</div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{jobs.map((job) => (
+            <JobCard
+              key={job.id}
+              job={job}
+              bookmarked={isBookmarked(job.id)}
+              onToggleBookmark={user?.role === 'job_seeker' ? toggleBookmark : null}
+            />
+          ))}</div>
         )}
       </section>
 

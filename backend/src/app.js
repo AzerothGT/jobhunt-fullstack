@@ -4,6 +4,7 @@ import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
 import applicantsRoutes from "./routes/applicantsRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
+import bookmarkRoutes from "./routes/bookmarkRoutes.js";
 import docsRoutes from "./routes/docsRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
@@ -19,6 +20,7 @@ app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/applicants", applicantsRoutes);
+app.use("/api/bookmarks", bookmarkRoutes);
 app.use("/api/recruiter", recruiterRoutes);
 app.use("/api/jobs", jobRoutes);
 

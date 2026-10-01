@@ -1,5 +1,8 @@
 import JobCard from '../components/JobCard.jsx'
 import { EmptyState, ErrorState, LoadingState } from '../components/PageState.jsx'
+import { useBookmarks } from '../hooks/useBookmarks.js'
+import { useAuth } from '../hooks/useAuth.js'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Field, FieldLabel } from '@/components/ui/field'
@@ -24,6 +27,17 @@ import { JOB_TYPES, jobTypeLabel } from '../utils/format.js'
 
 export default function JobsPage() {
   const { jobs, filters, setFilter, page, total, totalPages, loading, error, refresh } = useJobs({ syncParams: true })
+  const { user } = useAuth()
+  const { isBookmarked, toggle } = useBookmarks(user?.role === 'job_seeker')
+
+  async function toggleBookmark(jobId, bookmarked) {
+    try {
+      await toggle(jobId, bookmarked)
+      toast.success(bookmarked ? 'Simpanan dihapus.' : 'Lowongan disimpan.')
+    } catch {
+      toast.error('Gagal mengubah simpanan.')
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -106,7 +120,15 @@ export default function JobsPage() {
       {!loading && !error && jobs.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {jobs.map((job) => <JobCard key={job.id} job={job} showApplicants={filters.sort === 'applicants'} />)}
+            {jobs.map((job) => (
+              <JobCard
+                key={job.id}
+                job={job}
+                showApplicants={filters.sort === 'applicants'}
+                bookmarked={isBookmarked(job.id)}
+                onToggleBookmark={user?.role === 'job_seeker' ? toggleBookmark : null}
+              />
+            ))}
           </div>
           {totalPages > 1 && (
             <Pagination>

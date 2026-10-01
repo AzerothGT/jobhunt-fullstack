@@ -54,3 +54,14 @@ CREATE TABLE IF NOT EXISTS applications (
   CONSTRAINT uq_applications_job_applicant UNIQUE (job_id, applicant_id),
   INDEX idx_applications_applicant (applicant_id)
 ) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS bookmarks (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  user_id    INT NOT NULL,
+  job_id     INT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_bookmarks_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  CONSTRAINT fk_bookmarks_job FOREIGN KEY (job_id) REFERENCES jobs (id) ON DELETE CASCADE,
+  CONSTRAINT uq_bookmarks_user_job UNIQUE (user_id, job_id),
+  INDEX idx_bookmarks_user (user_id)
+) ENGINE = InnoDB;

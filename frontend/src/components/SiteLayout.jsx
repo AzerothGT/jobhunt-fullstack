@@ -41,6 +41,9 @@ export default function SiteLayout() {
             {user?.role === 'job_seeker' && (
               <NavLink to="/applications" className={navLinkClass}>Lamaran saya</NavLink>
             )}
+            {user?.role === 'job_seeker' && (
+              <NavLink to="/bookmarks" className={navLinkClass}>Tersimpan</NavLink>
+            )}
             {user?.role === 'recruiter' && (
               <NavLink to="/dashboard" className={navLinkClass}>Dasbor recruiter</NavLink>
             )}
