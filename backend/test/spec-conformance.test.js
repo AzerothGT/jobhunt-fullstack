@@ -178,3 +178,31 @@ test("spec: ON DELETE CASCADE ikut menghapus data terkait", async () => {
   expect((await sql`SELECT id FROM jobs WHERE id = ${job.id}`).length).toBe(0);
   expect((await sql`SELECT id FROM applications WHERE job_id = ${job.id}`).length).toBe(0);
 });
+
+test("applicants alias mirrors applications mine and status update", async () => {
+  const owner = await recruiter();
+  const other = await recruiter();
+  const applicant = await seeker();
+  const job = await createJob(server.url, owner.token);
+  const created = await send("POST", `/api/jobs/${job.id}/apply`, { token: applicant.token });
+  const { application } = await created.json();
+
+  const mine = await send("GET", "/api/applicants/mine", { token: applicant.token });
+  expect(mine.status).toBe(200);
+  expect((await mine.json()).data).toMatchObject([{ job_id: job.id, status: "pending" }]);
+  expect((await send("GET", "/api/applicants/mine")).status).toBe(401);
+  expect((await send("GET", "/api/applicants/mine", { token: owner.token })).status).toBe(403);
+
+  const updated = await send("PUT", `/api/applicants/${application.id}`, {
+    token: owner.token,
+    body: { status: "reviewed" },
+  });
+  expect(updated.status).toBe(200);
+  expect((await updated.json()).application.status).toBe("reviewed");
+  expect(
+    (await send("PUT", `/api/applicants/${application.id}`, { token: other.token, body: { status: "rejected" } })).status,
+  ).toBe(403);
+  expect(
+    (await send("PUT", "/api/applicants/999999", { token: owner.token, body: { status: "rejected" } })).status,
+  ).toBe(404);
+});
