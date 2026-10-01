@@ -65,3 +65,10 @@ CREATE TABLE IF NOT EXISTS bookmarks (
   CONSTRAINT uq_bookmarks_user_job UNIQUE (user_id, job_id),
   INDEX idx_bookmarks_user (user_id)
 ) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS user_roles (
+  user_id INT NOT NULL,
+  role    ENUM('job_seeker', 'recruiter') NOT NULL,
+  CONSTRAINT fk_user_roles_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  CONSTRAINT pk_user_roles PRIMARY KEY (user_id, role)
+) ENGINE = InnoDB;

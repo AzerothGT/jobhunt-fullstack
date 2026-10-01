@@ -91,6 +91,35 @@ const openApiSpec = {
         },
       },
     },
+    "/api/auth/roles": {
+      post: {
+        tags: ["Authentication"],
+        summary: "Enable an additional role for the account",
+        security: bearer,
+        requestBody: requestBody("RoleRequest"),
+        responses: {
+          "200": json("Roles updated", ref("RolesResponse")),
+          "400": error("Invalid role"),
+          "401": error("Authentication required or token invalid"),
+          "500": serverError(),
+        },
+      },
+    },
+    "/api/auth/switch": {
+      post: {
+        tags: ["Authentication"],
+        summary: "Switch the active role and get a new token",
+        security: bearer,
+        requestBody: requestBody("RoleRequest"),
+        responses: {
+          "200": json("Role switched and token issued", ref("AuthResponse")),
+          "400": error("Invalid role"),
+          "401": error("Authentication required or token invalid"),
+          "403": error("Role not enabled for this account"),
+          "500": serverError(),
+        },
+      },
+    },
     "/api/jobs": {
       get: {
         tags: ["Jobs"],
@@ -506,6 +535,7 @@ const openApiSpec = {
           name: { type: "string" },
           email: { type: "string", format: "email" },
           role: { type: "string", enum: ["job_seeker", "recruiter"] },
+          roles: { type: "array", items: { type: "string", enum: ["job_seeker", "recruiter"] } },
           created_at: { type: "string", format: "date-time" },
         },
       },
@@ -530,6 +560,18 @@ const openApiSpec = {
         properties: {
           email: { type: "string", format: "email" },
           password: { type: "string", minLength: 1, pattern: "\\S" },
+        },
+      },
+      RoleRequest: {
+        type: "object",
+        required: ["role"],
+        properties: { role: { type: "string", enum: ["job_seeker", "recruiter"] } },
+      },
+      RolesResponse: {
+        type: "object",
+        required: ["roles"],
+        properties: {
+          roles: { type: "array", items: { type: "string", enum: ["job_seeker", "recruiter"] } },
         },
       },
       Job: {

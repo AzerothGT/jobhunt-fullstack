@@ -2,9 +2,10 @@ import bcrypt from "bcryptjs";
 import { signToken } from "../middleware/auth.js";
 import { HttpError } from "../middleware/errorHandler.js";
 import { isDuplicateEntry } from "../middleware/validation.js";
-import { createUser, findUserByEmail } from "../models/userModel.js";
+import { addUserRole, createUser, findUserByEmail, findUserRoles } from "../models/userModel.js";
 
 const ROLES = new Set(["job_seeker", "recruiter"]);
+const ROLE_LABELS = { recruiter: "recruiter", job_seeker: "job seeker" };
 const MIN_PASSWORD_LENGTH = 8;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -67,4 +68,31 @@ export async function login(request, response) {
 
 export function me(request, response) {
   response.status(200).json({ user: request.user });
+}
+
+export async function addRole(request, response) {
+  const { role } = request.body ?? {};
+
+  if (!isText(role) || !ROLES.has(role)) {
+    throw new HttpError(400, "role must be job_seeker or recruiter");
+  }
+
+  const roles = await addUserRole(request.user.id, role);
+  response.status(200).json({ roles });
+}
+
+export async function switchRole(request, response) {
+  const { role } = request.body ?? {};
+
+  if (!isText(role) || !ROLES.has(role)) {
+    throw new HttpError(400, "role must be job_seeker or recruiter");
+  }
+
+  const roles = await findUserRoles(request.user.id);
+  if (!roles.includes(role)) {
+    throw new HttpError(403, `Enable the ${ROLE_LABELS[role]} role first`);
+  }
+
+  const user = { ...request.user, role, roles };
+  response.status(200).json({ token: signToken(user, role), user });
 }
