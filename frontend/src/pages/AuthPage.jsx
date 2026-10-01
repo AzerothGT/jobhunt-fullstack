@@ -1,5 +1,18 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useAuth } from '../hooks/useAuth.js'
 
 export default function AuthPage({ mode }) {
@@ -7,6 +20,7 @@ export default function AuthPage({ mode }) {
   const { login, register } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
+  const [role, setRole] = useState('job_seeker')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -14,6 +28,7 @@ export default function AuthPage({ mode }) {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
     const values = Object.fromEntries(form.entries())
+    if (isRegister) values.role = role
     setError('')
     setSubmitting(true)
     try {
@@ -31,42 +46,80 @@ export default function AuthPage({ mode }) {
   }
 
   return (
-    <div className="page-shell auth-page">
-      <div className="auth-aside">
-        <span className="eyebrow">{isRegister ? 'MULAI DI SINI' : 'SELAMAT DATANG KEMBALI'}</span>
-        <p>{isRegister ? 'Satu langkah kecil menuju pekerjaan yang lebih berarti.' : 'Tempat yang baik untuk bekerja dimulai dengan pencarian yang baik.'}</p>
-        <span className="auth-aside-mark" aria-hidden="true">J.</span>
+    <div className="mx-auto flex w-full max-w-md flex-col gap-6 py-8">
+      <div className="flex flex-col gap-1 text-center">
+        <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Akun JobHunt</p>
+        <h1 className="text-3xl font-bold tracking-tight">{isRegister ? 'Buat akun.' : 'Masuk ke akun.'}</h1>
+        <p className="text-sm text-muted-foreground">
+          {isRegister ? 'Pilih bagaimana Anda ingin menggunakan JobHunt.' : 'Lanjutkan perjalanan Anda dari sini.'}
+        </p>
       </div>
-      <section className="auth-panel" aria-labelledby="auth-title">
-        <span className="eyebrow">AKUN JOBHUNT</span>
-        <h1 id="auth-title">{isRegister ? 'Buat akun.' : 'Masuk ke akun.'}</h1>
-        <p className="auth-lead">{isRegister ? 'Pilih bagaimana Anda ingin menggunakan JobHunt.' : 'Lanjutkan perjalanan Anda dari sini.'}</p>
-        {error && <p className="form-error" role="alert">{error}</p>}
-        <form className="form-stack" onSubmit={submit}>
-          {isRegister && (
-            <label htmlFor="name">Nama lengkap
-              <input id="name" name="name" autoComplete="name" required maxLength="120" />
-            </label>
-          )}
-          <label htmlFor="email">Email
-            <input id="email" name="email" type="email" autoComplete="email" required />
-          </label>
-          <label htmlFor="password">Kata sandi
-            <input id="password" name="password" type="password" autoComplete={isRegister ? 'new-password' : 'current-password'} required minLength={isRegister ? 8 : undefined} />
-            {isRegister && <span className="field-hint">Gunakan minimal 8 karakter.</span>}
-          </label>
-          {isRegister && (
-            <label htmlFor="role">Saya ingin
-              <select id="role" name="role" defaultValue="job_seeker" required>
-                <option value="job_seeker">Mencari pekerjaan</option>
-                <option value="recruiter">Merekrut kandidat</option>
-              </select>
-            </label>
-          )}
-          <button className="button button-full" type="submit" disabled={submitting}>{submitting ? 'Mohon tunggu…' : isRegister ? 'Buat akun' : 'Masuk'} <span aria-hidden="true">↗</span></button>
-        </form>
-        <p className="auth-switch">{isRegister ? 'Sudah punya akun?' : 'Belum punya akun?'} <Link to={isRegister ? '/login' : '/register'}>{isRegister ? 'Masuk' : 'Daftar sekarang'}</Link></p>
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>{isRegister ? 'Daftar' : 'Masuk'}</CardTitle>
+          <CardDescription>
+            {isRegister ? 'Satu langkah kecil menuju pekerjaan yang lebih berarti.' : 'Tempat yang baik untuk bekerja dimulai dengan pencarian yang baik.'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={submit} className="flex flex-col gap-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <FieldGroup>
+              {isRegister && (
+                <Field>
+                  <FieldLabel htmlFor="name">Nama lengkap</FieldLabel>
+                  <Input id="name" name="name" autoComplete="name" required maxLength="120" />
+                </Field>
+              )}
+              <Field>
+                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <Input id="email" name="email" type="email" autoComplete="email" required />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="password">Kata sandi</FieldLabel>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete={isRegister ? 'new-password' : 'current-password'}
+                  required
+                  minLength={isRegister ? 8 : undefined}
+                />
+                {isRegister && <FieldDescription>Gunakan minimal 8 karakter.</FieldDescription>}
+              </Field>
+              {isRegister && (
+                <Field>
+                  <FieldLabel htmlFor="role">Saya ingin</FieldLabel>
+                  <Select value={role} onValueChange={setRole}>
+                    <SelectTrigger id="role" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="job_seeker">Mencari pekerjaan</SelectItem>
+                        <SelectItem value="recruiter">Merekrut kandidat</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              )}
+            </FieldGroup>
+            <Button type="submit" disabled={submitting} className="w-full">
+              {submitting ? 'Mohon tunggu…' : isRegister ? 'Buat akun' : 'Masuk'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+      <p className="text-center text-sm text-muted-foreground">
+        {isRegister ? 'Sudah punya akun?' : 'Belum punya akun?'}{' '}
+        <Button variant="link" size="sm" render={<Link to={isRegister ? '/login' : '/register'} />} className="p-0">
+          {isRegister ? 'Masuk' : 'Daftar sekarang'}
+        </Button>
+      </p>
     </div>
   )
 }

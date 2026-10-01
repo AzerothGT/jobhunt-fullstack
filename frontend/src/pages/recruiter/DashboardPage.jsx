@@ -1,6 +1,10 @@
+import { ArrowRight, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { EmptyState, ErrorState, LoadingState } from '../../components/PageState.jsx'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { api } from '../../utils/api.js'
 
 export default function DashboardPage() {
@@ -36,28 +40,77 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="page-shell dashboard-page">
-      <header className="page-heading dashboard-heading">
-        <div><span className="eyebrow">DASBOR RECRUITER</span><h1>Kerja yang <em>tumbuh.</em></h1><p>Kelola kesempatan dan temukan orang yang tepat.</p></div>
-        <Link className="button" to="/jobs/create">Pasang lowongan <span aria-hidden="true">↗</span></Link>
+    <div className="flex flex-col gap-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Dasbor recruiter</p>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Kerja yang tumbuh.</h1>
+          <p className="text-muted-foreground">Kelola kesempatan dan temukan orang yang tepat.</p>
+        </div>
+        <Button render={<Link to="/jobs/create" />}>
+          <Plus data-icon="inline-start" />
+          Pasang lowongan
+        </Button>
       </header>
       {loading ? <LoadingState label="Memuat ringkasan rekrutmen…" /> : null}
       {!loading && error ? <ErrorState message={error} onRetry={retryLoad} /> : null}
       {!loading && !error && stats && (
         <>
-          <section className="stats-grid" aria-label="Ringkasan rekrutmen">
-            <article className="stat-card"><span className="eyebrow">LOWONGAN ANDA</span><strong>{stats.total_jobs ?? 0}</strong><span>posisi dipublikasikan</span></article>
-            <article className="stat-card stat-card-accent"><span className="eyebrow">TOTAL PELAMAR</span><strong>{stats.total_applicants ?? 0}</strong><span>kandidat telah menghubungi</span></article>
+          <section className="grid gap-4 sm:grid-cols-2" aria-label="Ringkasan rekrutmen">
+            <Card>
+              <CardHeader>
+                <CardDescription>Lowongan Anda</CardDescription>
+                <CardTitle className="text-4xl">{stats.total_jobs ?? 0}</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">posisi dipublikasikan</CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardDescription>Total pelamar</CardDescription>
+                <CardTitle className="text-4xl">{stats.total_applicants ?? 0}</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">kandidat telah menghubungi</CardContent>
+            </Card>
           </section>
-          <section className="dashboard-jobs">
-            <div className="section-heading"><div><span className="eyebrow">DAFTAR POSISI</span><h2>Lowongan Anda</h2></div><Link className="text-link" to="/jobs/create">Tambah posisi <span aria-hidden="true">↗</span></Link></div>
+          <section className="flex flex-col gap-4">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Daftar posisi</p>
+                <h2 className="text-2xl font-bold tracking-tight">Lowongan Anda</h2>
+              </div>
+              <Button variant="link" render={<Link to="/jobs/create" />}>
+                Tambah posisi
+                <ArrowRight data-icon="inline-end" />
+              </Button>
+            </div>
             {jobs.length === 0 ? <EmptyState title="Belum ada lowongan">Mulai dengan mempublikasikan posisi pertama Anda.</EmptyState> : (
-              <div className="recruiter-job-list">
+              <div className="flex flex-col gap-3">
                 {jobs.map((job) => (
-                  <article className="recruiter-job-row" key={job.id}>
-                    <div><span className="eyebrow">{job.is_active ? 'AKTIF' : 'DITUTUP'} · {job.location}</span><h3>{job.title}</h3><p>{job.company}</p></div>
-                    <div className="recruiter-job-actions"><Link to={`/jobs/${job.id}/applicants`}>Lihat pelamar <span aria-hidden="true">↗</span></Link><Link to={`/jobs/${job.id}/edit`}>Edit</Link><Link to={`/jobs/${job.id}`}>Lihat</Link></div>
-                  </article>
+                  <Card key={job.id}>
+                    <CardContent className="flex flex-wrap items-center justify-between gap-4">
+                      <div className="flex min-w-0 flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <Badge variant={job.is_active ? 'default' : 'secondary'}>
+                            {job.is_active ? 'Aktif' : 'Ditutup'}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">{job.location}</span>
+                        </div>
+                        <p className="truncate text-lg font-semibold">{job.title}</p>
+                        <p className="text-sm text-muted-foreground">{job.company}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        <Button variant="ghost" size="sm" render={<Link to={`/jobs/${job.id}/applicants`} />}>
+                          Lihat pelamar
+                        </Button>
+                        <Button variant="ghost" size="sm" render={<Link to={`/jobs/${job.id}/edit`} />}>
+                          Edit
+                        </Button>
+                        <Button variant="ghost" size="sm" render={<Link to={`/jobs/${job.id}`} />}>
+                          Lihat
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             )}
