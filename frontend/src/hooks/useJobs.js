@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../utils/api.js'
+import { useDebounce } from './useDebounce.js'
 
 const SORTS = new Set(['recent', 'applicants'])
 
@@ -32,7 +33,6 @@ export function useJobs({ limit = 9, syncParams = false } = {}) {
     page: 1, keyword: '', type: '', location: '', sort: 'recent',
     ...(syncParams ? filtersFromParams(searchParams) : {}),
   }))
-  const [keyword, setKeyword] = useState('')
   const [jobs, setJobs] = useState([])
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
@@ -42,16 +42,18 @@ export function useJobs({ limit = 9, syncParams = false } = {}) {
   const [revision, setRevision] = useState(0)
   const request = useRef(null)
 
+  const debouncedKeyword = useDebounce(filters.keyword.trim(), 1500)
+
   useEffect(() => {
-    const timer = setTimeout(() => setKeyword(filters.keyword.trim()), 300)
-    return () => clearTimeout(timer)
-  }, [filters.keyword])
+    if (!syncParams) return
+    setSearchParams(paramsFromFilters(filters), { replace: true })
+  }, [filters, syncParams, setSearchParams])
 
   useEffect(() => {
     const controller = new AbortController()
     request.current = controller
     const params = new URLSearchParams({ page: String(filters.page), limit: String(limit), sort: filters.sort })
-    if (keyword) params.set('keyword', keyword)
+    if (debouncedKeyword) params.set('keyword', debouncedKeyword)
     if (filters.type) params.set('type', filters.type)
     if (filters.location) params.set('location', filters.location)
 
@@ -73,17 +75,13 @@ export function useJobs({ limit = 9, syncParams = false } = {}) {
       controller.abort()
       if (request.current === controller) request.current = null
     }
-  }, [filters.page, filters.type, filters.location, filters.sort, keyword, limit, revision])
+  }, [filters.page, filters.type, filters.location, filters.sort, debouncedKeyword, limit, revision])
 
   function setFilter(name, value) {
-    if (name === 'keyword' && value.trim() !== keyword) request.current?.abort()
+    if (name === 'keyword' && value.trim() !== filters.keyword.trim()) request.current?.abort()
     setLoading(true)
     setError('')
-    setFilters((current) => {
-      const next = { ...current, [name]: value, ...(name === 'page' ? {} : { page: 1 }) }
-      if (syncParams) setSearchParams(paramsFromFilters(next), { replace: true })
-      return next
-    })
+    setFilters((current) => ({ ...current, [name]: value, ...(name === 'page' ? {} : { page: 1 }) }))
   }
 
   function refresh() {
